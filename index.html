@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Studio | Seedance & Kling</title>
+    <meta name="description" content="Generate AI videos with Seedance and Kling V3 Standard.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="app-background">
+        <!-- Ambient floating orbs -->
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <main class="container">
+        <header class="app-header">
+            <h1 class="logo">
+                <i class="ph-fill ph-film-strip"></i>
+                AI Video <span>Studio</span>
+            </h1>
+            <p class="subtitle">Seedance 2.0 + fal.ai Kling V3 Standard video generation</p>
+        </header>
+
+        <section class="glass-panel main-panel">
+            <div class="creation-unified-panel">
+                <div class="creation-body">
+                    <!-- All Reference Mode Upload Dropzone (Left) -->
+                    <div id="dropZone" class="upload-widget">
+                        <div id="uploadPlaceholder" class="upload-placeholder">
+                            <i class="ph ph-plus"></i>
+                            <span style="font-size: 0.8rem; margin-top: 0.2rem; color: var(--text-muted);">参考内容</span>
+                        </div>
+                        <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*" class="hidden-file-input">
+                        
+                        <div id="uploadedTokens" class="uploaded-tokens hidden"></div>
+                    </div>
+
+                    <!-- Distinct First and Last Frame Mode Upload Dropzone (Left) -->
+                    <div id="firstLastDropZone" class="first-last-widget hidden" style="display:flex; gap:0.5rem; white-space:nowrap;">
+                        <div class="fl-slot" id="firstFrameSlot" onclick="document.getElementById('firstFrameInput').click()" ondragover="event.preventDefault()" ondrop="window.handleFLDrop(event, 'first')">
+                            <div class="fl-placeholder" id="firstFramePlaceholder">
+                                <i class="ph ph-plus"></i>
+                                <span style="font-size: 0.75rem; margin-top: 0.2rem; color: var(--text-muted);">上传首帧</span>
+                            </div>
+                            <input type="file" id="firstFrameInput" accept="image/*" class="hidden-file-input">
+                            <div id="firstFramePreview" class="fl-preview hidden"></div>
+                        </div>
+                        <div class="fl-slot" id="lastFrameSlot" onclick="document.getElementById('lastFrameInput').click()" ondragover="event.preventDefault()" ondrop="window.handleFLDrop(event, 'last')">
+                            <div class="fl-placeholder" id="lastFramePlaceholder">
+                                <i class="ph ph-plus"></i>
+                                <span style="font-size: 0.75rem; margin-top: 0.2rem; color: var(--text-muted);">上传尾帧</span>
+                            </div>
+                            <input type="file" id="lastFrameInput" accept="image/*" class="hidden-file-input">
+                            <div id="lastFramePreview" class="fl-preview hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Text Input (Right) -->
+                    <div class="textarea-wrapper">
+                        <textarea 
+                            id="prompt" 
+                            placeholder="上传1-12个参考素材，输入文字，自由组合图、文、音、视频多元素，定义精彩互动。例如：@图片1 模仿@视频1 的动作，音色参考 @音频1。" 
+                            rows="4"
+                        ></textarea>
+                        <div id="mentionDropdown" class="mention-dropdown hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Bottom Toolbar -->
+                <div class="creation-toolbar">
+                    <div class="toolbar-left">
+                        <div class="toolbar-pill highlight">
+                            <i class="ph ph-magic-wand"></i> 视频生成 <i class="ph ph-caret-down"></i>
+                        </div>
+                        <div class="toolbar-pill select-pill" style="min-width: 150px;">
+                            <i class="ph ph-hexagon"></i>
+                            <select id="modelSelect">
+                                <option value="dreamina-seedance-2-0-260128" selected>Seedance 2.0</option>
+                                <option value="dreamina-seedance-2-0-mini-260615">Seedance 2 Mini</option>
+                                <option value="seedance-2.0-mini-unfiltered">Seedance 2.0 Mini Unfiltered</option>
+                                <option value="fal-ai/kling-video/v3/standard/image-to-video">Kling V3 Standard 首尾帧 (fal.ai)</option>
+                                <option value="seedance-2.0-mini-unfiltered-content-i2v">实验 I2V · Mini Unfiltered（文档 inputs）</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-pill select-pill" style="min-width: 110px;">
+                            <i class="ph ph-intersect-three"></i> 
+                            <select id="referenceMode">
+                                <option value="all" selected>全能参考</option>
+                                <option value="first_last">首尾帧</option>
+                                <option value="multi_frame">智能多帧</option>
+                            </select>
+                        </div>
+                        
+                        <div class="toolbar-pill select-pill">
+                            <i class="ph ph-frame-corners"></i> 
+                            <select id="aspectRatio">
+                                <option value="9:16|1080x1920" selected>9:16</option>
+                                <option value="16:9|1920x1080">16:9</option>
+                                <option value="1:1|1080x1080">1:1</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-pill select-pill">
+                            <i class="ph ph-clock"></i> 
+                            <select id="duration">
+                                <option value="4" selected>4s</option>
+                                <option value="5">5s</option>
+                                <option value="6">6s</option>
+                                <option value="7">7s</option>
+                                <option value="8">8s</option>
+                                <option value="9">9s</option>
+                                <option value="10">10s</option>
+                                <option value="11">11s</option>
+                                <option value="12">12s</option>
+                                <option value="13">13s</option>
+                                <option value="14">14s</option>
+                                <option value="15">15s</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-pill select-pill" style="min-width: 100px;">
+                            <label class="toggle-switch-small" style="display:flex; align-items:center; gap:0.4rem;">
+                                <input type="checkbox" id="generateAudio">
+                                <span class="slider-small"></span>
+                                <span>音频</span>
+                            </label>
+                        </div>
+
+                        <!-- The @ button inside toolbar -->
+                        <button id="atBtn" class="toolbar-icon-btn" title="引用参考">
+                            <i class="ph ph-at"></i>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-right">
+                        <span class="char-count" id="charCount">0</span>
+                        <button id="generateBtn" class="generate-submit-btn">
+                            <i class="ph ph-arrow-up"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="statusMessage" class="status-message hidden">
+                <i class="ph ph-spinner-gap spin-anim"></i>
+                <span id="statusText">Initializing generation...</span>
+                <span id="elapsedTime" class="elapsed-time"></span>
+            </div>
+            
+        </section>
+
+        <!-- Task History Section -->
+        <section class="glass-panel history-panel" id="historyPanel" style="margin-top: 1.5rem; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin:0; font-size: 1.1rem; color: #fff;">
+                    <i class="ph ph-clock-counter-clockwise" style="margin-right:0.3rem;"></i> 历史任务
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;" onclick="clearHistory()">
+                    <i class="ph ph-trash"></i> 清空记录
+                </div>
+            </div>
+            
+            <div id="tasksGrid" class="tasks-grid">
+                <!-- Task Cards will be dynamically injected here -->
+            </div>
+        </section>
+    </main>
+    
+    <!-- Modal for Video Preview -->
+    <div id="videoModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeVideoModal()">&times;</span>
+            <video id="modalVideo" controls autoplay playsinline loop></video>
+        </div>
+    </div>
+
+    <script src="config.local.js"></script>
+    <script src="seedance_api.js"></script>
+    <script src="kling_api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
