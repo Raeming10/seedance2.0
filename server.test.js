@@ -84,3 +84,39 @@ test('an upstream response stream error does not terminate the local server', { 
         }
     }
 });
+
+test('accepts generic reference media uploads and serves their MIME type', { timeout: 5_000 }, async () => {
+    const port = await getUnusedPort();
+    const child = spawn(process.execPath, ['server.js'], {
+        cwd: __dirname,
+        env: {
+            ...process.env,
+            PORT: String(port),
+            PUBLIC_BASE_URL: 'https://example.test',
+        },
+        stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    try {
+        await waitForOutput(child, `http://127.0.0.1:${port}/`);
+        const uploadResponse = await fetch(
+            `http://127.0.0.1:${port}/api/upload-reference?filename=voice.wav`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'audio/wav' },
+                body: Buffer.from('RIFF-test-audio'),
+            }
+        );
+        assert.equal(uploadResponse.status, 200);
+        const uploaded = await uploadResponse.json();
+        const pathname = new URL(uploaded.url).pathname;
+        const mediaResponse = await fetch(`http://127.0.0.1:${port}${pathname}`);
+        assert.equal(mediaResponse.status, 200);
+        assert.equal(mediaResponse.headers.get('content-type'), 'audio/wav');
+    } finally {
+        if (child.exitCode === null) {
+            child.kill('SIGTERM');
+            await once(child, 'exit');
+        }
+    }
+});

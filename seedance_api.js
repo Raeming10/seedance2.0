@@ -138,6 +138,45 @@
         return /^https?:\/\//i.test(String(value || ''));
     }
 
+    function normalizePromptReferences(promptValue, files = []) {
+        return files.reduce((prompt, file) => {
+            const name = String(file?.name || '');
+            if (!name) return prompt;
+            const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const referenceLabel = name
+                .replace(/^图片(\d+)$/, '[Image $1]')
+                .replace(/^视频(\d+)$/, '[Video $1]')
+                .replace(/^音频(\d+)$/, '[Audio $1]');
+            return prompt.replace(new RegExp(`@${escapedName}(?!\\d)`, 'g'), referenceLabel);
+        }, String(promptValue || ''));
+    }
+
+    function mediaNeedsPublicUpload(file) {
+        const currentUrl = file?.publicUrl || file?.dataUrl || '';
+        if (isHttpUrl(currentUrl) || /^asset:\/\//i.test(currentUrl)) return false;
+        return /^data:/i.test(currentUrl);
+    }
+
+    function buildSeedanceReferenceItems(files = []) {
+        return files.map(file => {
+            const url = file?.publicUrl || file?.dataUrl;
+            if (file?.role === 'reference_video') {
+                return { type: 'video_url', video_url: { url }, role: 'reference_video' };
+            }
+            if (file?.role === 'reference_audio') {
+                return { type: 'audio_url', audio_url: { url }, role: 'reference_audio' };
+            }
+            return { type: 'image_url', image_url: { url }, role: 'reference_image' };
+        });
+    }
+
+    function isValidImageDataUrl(value) {
+        const match = String(value || '').match(
+            /^data:image\/[a-z0-9.+-]+;base64,([A-Za-z0-9+/]+={0,2})$/
+        );
+        return Boolean(match && match[1].length % 4 === 0);
+    }
+
     function extractUploadedFileUrl(responseBody) {
         const file = responseBody?.data || responseBody || {};
         const candidates = [
@@ -162,6 +201,16 @@
         }
 
         items.forEach(item => {
+            const imageUrl = typeof item.image_url === 'string' ? item.image_url : item.image_url?.url;
+            if (item.type === 'image_url') {
+                const isSupportedImageReference = isHttpUrl(imageUrl)
+                    || /^asset:\/\/[A-Za-z0-9._:-]+$/.test(String(imageUrl || ''))
+                    || isValidImageDataUrl(imageUrl);
+                if (!isSupportedImageReference) {
+                    throw new Error('Invalid Base64 image reference. 图片必须使用公网 http(s) URL、asset:// 素材 ID，或完整的 data:image/<格式>;base64,<数据>。');
+                }
+            }
+
             const videoUrl = typeof item.video_url === 'string' ? item.video_url : item.video_url?.url;
             if ((item.role === 'reference_video' || item.type === 'video_url') && !isHttpUrl(videoUrl)) {
                 throw new Error('BytePlus reference video must use an http(s) URL. 参考视频必须先上传到公网 URL，不能直接使用本地视频文件。');
@@ -218,6 +267,7 @@
         buildAuthHeaders,
         buildInterviewCoderImagePayload,
         buildInterviewCoderPayload,
+        buildSeedanceReferenceItems,
         buildSeedancePayload,
         buildTaskStatusUrl,
         extractUploadedFileUrl,
@@ -227,6 +277,8 @@
         getTaskId,
         isInterviewCoderModel,
         isInterviewCoderContentModel,
+        mediaNeedsPublicUpload,
+        normalizePromptReferences,
         normalizeTaskStatus,
         validateSeedanceContent,
     };

@@ -294,7 +294,7 @@ async function uploadReferenceFileViaLocalServer(uploadedFile, uploadBody = uplo
             : await fetch('/api/upload-status').then(response => response.json()).catch(() => null);
 
         if (currentStatus?.ready) {
-            const response = await fetch(`/api/upload-reference-video?filename=${encodeURIComponent(uploadFilename || `${uploadedFile.id}.bin`)}`, {
+            const response = await fetch(`/api/upload-reference?filename=${encodeURIComponent(uploadFilename || `${uploadedFile.id}.bin`)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': uploadBody?.type || 'application/octet-stream'
@@ -315,6 +315,51 @@ async function uploadReferenceFileViaLocalServer(uploadedFile, uploadBody = uplo
     }
 
     throw new Error('Public upload tunnel is not ready yet. 请稍等几秒后重新上传视频。');
+}
+
+function extensionForMimeType(mimeType) {
+    const extensions = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'audio/mpeg': 'mp3',
+        'audio/mp3': 'mp3',
+        'audio/wav': 'wav',
+        'audio/x-wav': 'wav',
+        'video/mp4': 'mp4',
+        'video/quicktime': 'mov',
+    };
+    return extensions[String(mimeType || '').toLowerCase()] || 'bin';
+}
+
+async function ensurePublicReferenceUrls(files) {
+    const inlineFiles = files.filter(window.SeedanceApi.mediaNeedsPublicUpload);
+    for (const file of inlineFiles) {
+        file.uploadStatus = 'uploading';
+        renderTokens();
+        try {
+            const mediaBlob = await fetch(file.dataUrl).then(response => response.blob());
+            if (!mediaBlob.size) throw new Error('媒体文件为空。');
+            const extension = extensionForMimeType(mediaBlob.type);
+            const publicUrl = await uploadReferenceFileViaLocalServer(
+                file,
+                mediaBlob,
+                `${file.id}.${extension}`
+            );
+            if (!/^https:\/\//i.test(String(publicUrl || ''))) {
+                throw new Error('本地媒体上传服务不可用，请通过 node server.js 打开应用后重试。');
+            }
+            file.publicUrl = publicUrl;
+            file.uploadStatus = 'ready';
+            file.uploadError = null;
+        } catch (error) {
+            file.uploadStatus = 'error';
+            file.uploadError = error.message;
+            renderTokens();
+            throw new Error(`${file.name || '参考素材'}上传失败：${error.message}`);
+        }
+        renderTokens();
+    }
 }
 
 function handleFiles(files) {
@@ -556,20 +601,6 @@ function hideMentionDropdown() {
     mentionDropdown.classList.add('hidden');
 }
 
-function toSeedanceReferenceLabel(file) {
-    return file.name
-        .replace(/^图片(\d+)$/, 'Image $1')
-        .replace(/^视频(\d+)$/, 'Video $1')
-        .replace(/^音频(\d+)$/, 'Audio $1');
-}
-
-function normalizePromptReferences(promptValue) {
-    return uploadedFiles.reduce((prompt, file) => {
-        const escapedName = file.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return prompt.replace(new RegExp(`@${escapedName}\\b`, 'g'), toSeedanceReferenceLabel(file));
-    }, promptValue);
-}
-
 // Listeners
 generateBtn.addEventListener('click', handleGenerate);
 
@@ -590,7 +621,7 @@ async function handleGenerate() {
     const duration = parseInt(durationSelect.value, 10);
     const generateAudio = generateAudioCheck.checked;
 
-    let finalPromptValue = normalizePromptReferences(promptValue);
+    const finalPromptValue = window.SeedanceApi.normalizePromptReferences(promptValue, uploadedFiles);
 
     if (window.KlingApi.isKlingModel(selectedModel)) {
         let klingPayload;
@@ -652,6 +683,16 @@ async function handleGenerate() {
     const contentArray = [];
     const runMode = referenceModeSelect.value;
 
+    if (runMode !== 'first_last' && !isInterviewCoder) {
+        try {
+            updateStatus('Uploading reference media to public HTTPS URLs...');
+            await ensurePublicReferenceUrls(uploadedFiles);
+        } catch (uploadError) {
+            showStatus(uploadError.message, true);
+            return;
+        }
+    }
+
     if (runMode === 'first_last') {
         if (!firstFrameDataUrl || !lastFrameDataUrl) {
             showStatus('首尾帧模式必须同时上传首帧和尾帧。', true);
@@ -673,29 +714,7 @@ async function handleGenerate() {
             });
         }
     } else {
-        uploadedFiles.forEach(uf => {
-            let type = 'image_url';
-            let key = 'image_url';
-            let contentObj = {
-                type: type,
-                [key]: { url: uf.dataUrl }
-            };
-
-            if (uf.role === 'reference_video') {
-                contentObj.type = 'video_url';
-                contentObj.video_url = { url: uf.publicUrl || uf.dataUrl };
-                contentObj.role = uf.role;
-                contentArray.push(contentObj);
-            } else if (uf.role === 'reference_audio') {
-                contentObj.type = 'audio_url';
-                contentObj.audio_url = { url: uf.dataUrl };
-                contentObj.role = uf.role;
-                contentArray.push(contentObj);
-            } else {
-                contentObj.role = 'reference_image';
-                contentArray.push(contentObj);
-            }
-        });
+        contentArray.push(...window.SeedanceApi.buildSeedanceReferenceItems(uploadedFiles));
     }
 
     contentArray.unshift({
@@ -1215,6 +1234,10 @@ window.regenerateTask = async function(taskId) {
             || window.SeedanceApi.isInterviewCoderModel(task.payload.model);
         if (!isInterviewCoder && !API_KEY) {
             throw new Error('Missing BytePlus ARK API key. Please set it in config.local.js.');
+        }
+
+        if (!isInterviewCoder) {
+            window.SeedanceApi.validateSeedanceContent(task.payload.content);
         }
 
         const response = await fetch(isInterviewCoder ? '/api/interviewcoder/videos' : COMPLETIONS_URL, {

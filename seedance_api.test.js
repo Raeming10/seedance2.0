@@ -6,12 +6,15 @@ const {
     buildInterviewCoderPayload,
     buildInterviewCoderImagePayload,
     buildTaskStatusUrl,
+    buildSeedanceReferenceItems,
     extractUploadedFileUrl,
     getModelOptions,
     getReferenceRoleForMimeType,
     getTaskId,
     isInterviewCoderModel,
     isInterviewCoderContentModel,
+    mediaNeedsPublicUpload,
+    normalizePromptReferences,
     normalizeTaskStatus,
     validateSeedanceContent,
 } = require('./seedance_api');
@@ -110,6 +113,65 @@ test('classifies an image from the general uploader as a reference image', () =>
     assert.equal(getReferenceRoleForMimeType('audio/mpeg'), 'reference_audio');
 });
 
+test('normalizes @ mentions to the official BytePlus reference labels', () => {
+    assert.equal(
+        normalizePromptReferences(
+            '@图片1 穿上 @图片2 的服装，并模仿 @视频1 的动作',
+            [
+                { name: '图片1' },
+                { name: '图片2' },
+                { name: '视频1' },
+            ]
+        ),
+        '[Image 1] 穿上 [Image 2] 的服装，并模仿 [Video 1] 的动作'
+    );
+});
+
+test('requires inline multimodal media to be uploaded before submission', () => {
+    assert.equal(mediaNeedsPublicUpload({
+        role: 'reference_image',
+        dataUrl: 'data:image/jpeg;base64,YWJj',
+    }), true);
+    assert.equal(mediaNeedsPublicUpload({
+        role: 'reference_audio',
+        dataUrl: 'data:audio/mpeg;base64,YWJj',
+    }), true);
+    assert.equal(mediaNeedsPublicUpload({
+        role: 'reference_video',
+        publicUrl: 'https://example.com/reference.mp4',
+    }), false);
+    assert.equal(mediaNeedsPublicUpload({
+        role: 'reference_image',
+        dataUrl: 'asset://asset-123',
+    }), false);
+});
+
+test('builds multimodal reference items from public URLs for every media type', () => {
+    assert.deepEqual(buildSeedanceReferenceItems([
+        { role: 'reference_image', publicUrl: 'https://example.com/image.jpg', dataUrl: 'data:image/jpeg;base64,YWJj' },
+        { role: 'reference_audio', publicUrl: 'https://example.com/voice.mp3', dataUrl: 'data:audio/mpeg;base64,YWJj' },
+        { role: 'reference_video', publicUrl: 'https://example.com/motion.mp4', dataUrl: 'data:video/mp4;base64,YWJj' },
+    ]), [
+        { type: 'image_url', image_url: { url: 'https://example.com/image.jpg' }, role: 'reference_image' },
+        { type: 'audio_url', audio_url: { url: 'https://example.com/voice.mp3' }, role: 'reference_audio' },
+        { type: 'video_url', video_url: { url: 'https://example.com/motion.mp4' }, role: 'reference_video' },
+    ]);
+});
+
+test('rejects malformed Base64 image references before submission', () => {
+    assert.throws(
+        () => validateSeedanceContent([
+            { type: 'text', text: '使用图片1中的角色' },
+            {
+                type: 'image_url',
+                image_url: { url: 'data:image/jpeg;base64,not-valid-@@' },
+                role: 'reference_image',
+            },
+        ]),
+        /invalid Base64 image/i
+    );
+});
+
 test('builds BytePlus GET status URL', () => {
     assert.equal(
         buildTaskStatusUrl('cgt-202606070001-aa11'),
@@ -163,15 +225,15 @@ test('requires both first and last frames when using first-last frame roles', ()
     assert.throws(
         () => validateSeedanceContent([
             { type: 'text', text: 'animate this' },
-            { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,aaa' }, role: 'first_frame' },
+            { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,YWFh' }, role: 'first_frame' },
         ]),
         /first and last frame images must both be provided/
     );
 
     assert.doesNotThrow(() => validateSeedanceContent([
         { type: 'text', text: 'animate this' },
-        { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,aaa' }, role: 'first_frame' },
-        { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,bbb' }, role: 'last_frame' },
+        { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,YWFh' }, role: 'first_frame' },
+        { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,YmJi' }, role: 'last_frame' },
     ]));
 });
 

@@ -46,9 +46,11 @@ const mimeTypes = {
     '.json': 'application/json; charset=utf-8',
     '.mp3': 'audio/mpeg',
     '.mp4': 'video/mp4',
+    '.mov': 'video/quicktime',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
+    '.wav': 'audio/wav',
     '.webp': 'image/webp',
 };
 
@@ -357,7 +359,10 @@ const server = createServer(async (req, res) => {
             return;
         }
 
-        if (req.method === 'POST' && url.pathname === '/api/upload-reference-video') {
+        if (req.method === 'POST' && (
+            url.pathname === '/api/upload-reference'
+            || url.pathname === '/api/upload-reference-video'
+        )) {
             handleUpload(req, res, url);
             return;
         }
