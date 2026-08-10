@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [
     cloudflareTest({
+      main: "./test/fixtures/empty-worker.ts",
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
         bindings: {
