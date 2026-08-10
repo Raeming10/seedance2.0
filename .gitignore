@@ -1,6 +1,7 @@
 config.local.js
 .env
 .uploads/
+.outputs/
 .DS_Store
 *.log
 node_modules/

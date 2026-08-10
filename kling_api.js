@@ -5,24 +5,24 @@
         root.KlingApi = factory();
     }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
-    const KLING_V3_STANDARD_MODEL = 'fal-ai/kling-video/v3/standard/image-to-video';
+    const KLING_V3_PRO_MODEL = 'fal-ai/kling-video/v3/pro/image-to-video';
     const SUPPORTED_DURATIONS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
     function isKlingModel(model) {
-        return model === KLING_V3_STANDARD_MODEL;
+        return model === KLING_V3_PRO_MODEL;
     }
 
     function buildKlingPayload({ prompt, startImageUrl, endImageUrl, duration, generateAudio = false }) {
         const normalizedDuration = Number(duration);
 
         if (!String(prompt || '').trim()) {
-            throw new Error('Kling V3 Standard requires a prompt.');
+            throw new Error('Kling V3 Pro requires a prompt.');
         }
         if (!startImageUrl || !endImageUrl) {
-            throw new Error('Kling V3 Standard 首尾帧模式必须同时上传首帧和尾帧。');
+            throw new Error('Kling V3 Pro 首尾帧模式必须同时上传首帧和尾帧。');
         }
         if (!SUPPORTED_DURATIONS.includes(normalizedDuration)) {
-            throw new Error('Kling V3 Standard only supports durations from 3 to 15 seconds.');
+            throw new Error('Kling V3 Pro only supports durations from 3 to 15 seconds.');
         }
 
         return {
@@ -73,7 +73,7 @@
     }
 
     return {
-        KLING_V3_STANDARD_MODEL,
+        KLING_V3_PRO_MODEL,
         SUPPORTED_DURATIONS: [...SUPPORTED_DURATIONS],
         buildKlingPayload,
         extractVideoUrl,

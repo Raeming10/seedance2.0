@@ -4,15 +4,14 @@ const test = require('node:test');
 const {
     buildSeedancePayload,
     buildInterviewCoderPayload,
-    buildInterviewCoderImagePayload,
     buildTaskStatusUrl,
     buildSeedanceReferenceItems,
     extractUploadedFileUrl,
     getModelOptions,
     getReferenceRoleForMimeType,
+    getTaskErrorDetails,
     getTaskId,
     isInterviewCoderModel,
-    isInterviewCoderContentModel,
     mediaNeedsPublicUpload,
     normalizePromptReferences,
     normalizeTaskStatus,
@@ -49,62 +48,89 @@ test('builds BytePlus task payload without chat wrapper', () => {
     assert.equal(payload.size, undefined);
 });
 
-test('exposes Seedance model options including Mini Unfiltered', () => {
+test('exposes the three production InterviewCoder Unfiltered models', () => {
     assert.deepEqual(getModelOptions(), [
-        { label: 'Seedance 2.0', value: 'dreamina-seedance-2-0-260128' },
-        { label: 'Seedance 2 Mini', value: 'dreamina-seedance-2-0-mini-260615' },
+        { label: 'Seedance 2.0 Standard', value: 'dreamina-seedance-2-0-260128' },
+        { label: 'Seedance 2.0 Mini', value: 'dreamina-seedance-2-0-mini-260615' },
+        { label: 'Seedance 2.0 Standard Unfiltered', value: 'seedance-2.0-unfiltered' },
+        { label: 'Seedance 2.0 Fast Unfiltered', value: 'seedance-2.0-fast-unfiltered' },
         { label: 'Seedance 2.0 Mini Unfiltered', value: 'seedance-2.0-mini-unfiltered' },
-        { label: 'Kling V3 Standard 首尾帧 (fal.ai)', value: 'fal-ai/kling-video/v3/standard/image-to-video' },
-        { label: '实验 I2V · Mini Unfiltered（文档 inputs）', value: 'seedance-2.0-mini-unfiltered-content-i2v' },
+        { label: 'Kling V3 Pro 首尾帧 (fal.ai)', value: 'fal-ai/kling-video/v3/pro/image-to-video' },
+        { label: 'MiniMax H3 图生视频 768P (fal.ai)', value: 'minimax/h3/image-to-video' },
     ]);
 });
 
-test('builds the fixed InterviewCoder Mini Unfiltered payload', () => {
-    assert.equal(isInterviewCoderModel('seedance-2.0-mini-unfiltered'), true);
-    assert.deepEqual(buildInterviewCoderPayload({
-        model: 'seedance-2.0-mini-unfiltered',
-        prompt: ' cinematic scene ',
-    }), {
-        model: 'seedance-2.0-mini-unfiltered',
-        prompt: 'cinematic scene',
-        duration_seconds: 5,
-        resolution: '480p',
-        aspect_ratio: '16:9',
-        generate_audio: false,
-    });
+test('builds a configurable 720p InterviewCoder Unfiltered payload', () => {
+    for (const model of [
+        'seedance-2.0-unfiltered',
+        'seedance-2.0-fast-unfiltered',
+        'seedance-2.0-mini-unfiltered',
+    ]) {
+        assert.equal(isInterviewCoderModel(model), true);
+        assert.deepEqual(buildInterviewCoderPayload({
+            model,
+            prompt: ' cinematic scene ',
+            duration: 12,
+            aspectRatio: '9:16',
+        }), {
+            model,
+            prompt: 'cinematic scene',
+            duration_seconds: 12,
+            resolution: '720p',
+            aspect_ratio: '9:16',
+            generate_audio: false,
+        });
+    }
 });
 
-test('builds experimental I2V with the documented InterviewCoder inputs array', () => {
-    assert.equal(
-        isInterviewCoderContentModel('seedance-2.0-mini-unfiltered-content-i2v'),
-        true
-    );
-    assert.deepEqual(buildInterviewCoderImagePayload({
+test('adds one documented HTTPS reference image to an Unfiltered payload', () => {
+    assert.deepEqual(buildInterviewCoderPayload({
+        model: 'seedance-2.0-fast-unfiltered',
         prompt: 'The subject turns toward the camera',
-        imageUrl: 'https://example.com/reference.jpg',
+        duration: 8,
+        aspectRatio: '1:1',
+        imageUrl: 'https://example.com/reference.webp',
     }), {
-        model: 'seedance-2.0-mini-unfiltered',
+        model: 'seedance-2.0-fast-unfiltered',
         prompt: 'The subject turns toward the camera',
         inputs: [{
             type: 'image_url',
             role: 'reference_image',
-            url: 'https://example.com/reference.jpg',
+            url: 'https://example.com/reference.webp',
         }],
-        duration_seconds: 5,
-        resolution: '480p',
-        aspect_ratio: '16:9',
+        duration_seconds: 8,
+        resolution: '720p',
+        aspect_ratio: '1:1',
         generate_audio: false,
     });
 });
 
-test('rejects non-HTTPS images for documented InterviewCoder I2V', () => {
-    assert.throws(
-        () => buildInterviewCoderImagePayload({
-            prompt: 'animate',
-            imageUrl: 'data:image/jpeg;base64,abc',
-        }),
-        /public HTTPS/
-    );
+test('validates InterviewCoder Unfiltered capability fields', () => {
+    assert.throws(() => buildInterviewCoderPayload({
+        model: 'seedance-2.0-mini-unfiltered-content-i2v',
+        prompt: 'animate',
+        duration: 5,
+        aspectRatio: '16:9',
+    }), /Unsupported InterviewCoder model/);
+    assert.throws(() => buildInterviewCoderPayload({
+        model: 'seedance-2.0-unfiltered',
+        prompt: 'animate',
+        duration: 3,
+        aspectRatio: '16:9',
+    }), /4 to 15 seconds/);
+    assert.throws(() => buildInterviewCoderPayload({
+        model: 'seedance-2.0-unfiltered',
+        prompt: 'animate',
+        duration: 5,
+        aspectRatio: 'adaptive',
+    }), /Unsupported aspect ratio/);
+    assert.throws(() => buildInterviewCoderPayload({
+        model: 'seedance-2.0-unfiltered',
+        prompt: 'animate',
+        duration: 5,
+        aspectRatio: '16:9',
+        imageUrl: 'data:image/jpeg;base64,abc',
+    }), /public HTTPS/);
 });
 
 test('classifies an image from the general uploader as a reference image', () => {
@@ -191,6 +217,33 @@ test('normalizes BytePlus task statuses and video URL', () => {
         videoUrl: 'https://example.com/out.mp4',
         progress: 100,
         errorMessage: null,
+        errorCode: null,
+    });
+});
+
+test('preserves failure code and message for history cards', () => {
+    const normalized = normalizeTaskStatus({
+        status: 'failed',
+        error: {
+            code: 'OutputVideoSensitiveContentDetected.PolicyViolation',
+            message: 'The output may be related to copyright restrictions.',
+        },
+    });
+    assert.equal(normalized.errorCode, 'OutputVideoSensitiveContentDetected.PolicyViolation');
+    assert.equal(normalized.errorMessage, 'The output may be related to copyright restrictions.');
+    assert.deepEqual(getTaskErrorDetails({
+        errorCode: normalized.errorCode,
+        error: normalized.errorMessage,
+    }), {
+        code: 'OutputVideoSensitiveContentDetected.PolicyViolation',
+        message: 'The output may be related to copyright restrictions.',
+    });
+});
+
+test('supports legacy history records that only stored an error string', () => {
+    assert.deepEqual(getTaskErrorDetails({ error: 'Legacy failure message' }), {
+        code: '',
+        message: 'Legacy failure message',
     });
 });
 

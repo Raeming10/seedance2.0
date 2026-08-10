@@ -76,6 +76,38 @@ function handleFLFiles(files, type) {
     reader.readAsDataURL(file);
 }
 
+function cropImageDataUrlToAspect(dataUrl, aspectRatio) {
+    if (!dataUrl) return Promise.resolve(null);
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+            try {
+                const crop = window.MinimaxH3Api.getCenterCrop(image.width, image.height, aspectRatio);
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(crop.sWidth));
+                canvas.height = Math.max(1, Math.round(crop.sHeight));
+                const context = canvas.getContext('2d');
+                context.drawImage(
+                    image,
+                    crop.sx,
+                    crop.sy,
+                    crop.sWidth,
+                    crop.sHeight,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+                resolve(canvas.toDataURL('image/jpeg', 0.9));
+            } catch (error) {
+                reject(error);
+            }
+        };
+        image.onerror = () => reject(new Error('MiniMax H3 无法读取上传的帧图片。'));
+        image.src = dataUrl;
+    });
+}
+
 function renderFLPreview() {
     const firstPreview = document.getElementById('firstFramePreview');
     if (firstFrameDataUrl) {
@@ -137,10 +169,20 @@ function replaceDurationOptions(values, preferredValue) {
 
 function updateModelUi() {
     const isKling = window.KlingApi.isKlingModel(modelSelect?.value);
+    const isMinimaxH3 = window.MinimaxH3Api.isMinimaxH3Model(modelSelect?.value);
     const isInterviewCoder = window.SeedanceApi.isInterviewCoderModel(modelSelect?.value);
-    const isInterviewCoderContent = window.SeedanceApi.isInterviewCoderContentModel(modelSelect?.value);
+    fileInput.multiple = true;
     fileInput.accept = 'image/*,video/*,audio/*';
-    if (isKling) {
+    if (isMinimaxH3) {
+        referenceModeSelect.value = 'first_last';
+        referenceModeSelect.dispatchEvent(new Event('change'));
+        referenceModeSelect.disabled = true;
+        aspectRatioSelect.disabled = false;
+        generateAudioCheck.checked = true;
+        generateAudioCheck.disabled = false;
+        replaceDurationOptions(window.MinimaxH3Api.SUPPORTED_DURATIONS, durationSelect.value);
+        promptInput.placeholder = '上传首帧（必选）和尾帧（可选），描述画面运动；固定 768P，音频跟随开关。';
+    } else if (isKling) {
         referenceModeSelect.value = 'first_last';
         referenceModeSelect.dispatchEvent(new Event('change'));
         referenceModeSelect.disabled = true;
@@ -149,28 +191,17 @@ function updateModelUi() {
         generateAudioCheck.disabled = false;
         replaceDurationOptions(window.KlingApi.SUPPORTED_DURATIONS, durationSelect.value);
         promptInput.placeholder = '描述首帧到尾帧之间的运动或转场。可用 @Image1 表示首帧、@Image2 表示尾帧。';
-    } else if (isInterviewCoderContent) {
-        referenceModeSelect.value = 'all';
-        referenceModeSelect.dispatchEvent(new Event('change'));
-        referenceModeSelect.disabled = true;
-        fileInput.accept = 'image/*';
-        aspectRatioSelect.value = '16:9|1920x1080';
-        aspectRatioSelect.disabled = true;
-        generateAudioCheck.checked = false;
-        generateAudioCheck.disabled = true;
-        replaceDurationOptions([5], 5);
-        promptInput.placeholder = '上传 1 张图片并描述运动；使用 InterviewCoder v7 inputs 格式提交。';
     } else if (isInterviewCoder) {
         referenceModeSelect.value = 'all';
         referenceModeSelect.dispatchEvent(new Event('change'));
         referenceModeSelect.disabled = true;
-        dropZone.classList.add('hidden');
-        aspectRatioSelect.value = '16:9|1920x1080';
-        aspectRatioSelect.disabled = true;
+        fileInput.multiple = false;
+        fileInput.accept = 'image/jpeg,image/png,image/webp';
+        aspectRatioSelect.disabled = false;
         generateAudioCheck.checked = false;
         generateAudioCheck.disabled = true;
-        replaceDurationOptions([5], 5);
-        promptInput.placeholder = '描述要生成的视频。此模型固定为 5 秒、480p、16:9、无音频。';
+        replaceDurationOptions([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], durationSelect.value);
+        promptInput.placeholder = '描述要生成的视频，可选择上传 1 张参考图。固定 720p、无音频。';
     } else {
         referenceModeSelect.dispatchEvent(new Event('change'));
         referenceModeSelect.disabled = false;
@@ -616,12 +647,63 @@ async function handleGenerate() {
     const [aspectRatio] = aspectRatioSelect.value.split('|');
     const selectedModel = modelSelect?.value || MODEL;
     const isInterviewCoder = window.SeedanceApi.isInterviewCoderModel(selectedModel);
-    const isInterviewCoderContent = window.SeedanceApi.isInterviewCoderContentModel(selectedModel);
+    const isMinimaxH3 = window.MinimaxH3Api.isMinimaxH3Model(selectedModel);
     const resolution = '720p';
     const duration = parseInt(durationSelect.value, 10);
     const generateAudio = generateAudioCheck.checked;
 
     const finalPromptValue = window.SeedanceApi.normalizePromptReferences(promptValue, uploadedFiles);
+
+    if (isMinimaxH3) {
+        let minimaxPayload;
+        try {
+            if (!firstFrameDataUrl) {
+                throw new Error('MiniMax H3 图生视频必须上传首帧，尾帧可以不传。');
+            }
+            updateStatus(`正在按 ${aspectRatio} 画幅处理 H3 输入图片...`);
+            const [croppedFirstFrame, croppedLastFrame] = await Promise.all([
+                cropImageDataUrlToAspect(firstFrameDataUrl, aspectRatio),
+                cropImageDataUrlToAspect(lastFrameDataUrl, aspectRatio),
+            ]);
+            minimaxPayload = window.MinimaxH3Api.buildMinimaxH3Payload({
+                prompt: promptValue,
+                imageUrl: croppedFirstFrame,
+                endImageUrl: croppedLastFrame,
+                duration,
+            });
+        } catch (validationError) {
+            showStatus(validationError.message, true);
+            return;
+        }
+
+        const appState = {
+            promptValue,
+            model: selectedModel,
+            referenceMode: 'first_last',
+            aspectRatio: aspectRatioSelect.value,
+            duration: durationSelect.value,
+            generateAudio,
+            firstFrameDataUrl,
+            lastFrameDataUrl,
+            uploadedFiles: [],
+        };
+
+        setLoadingState(true);
+        startTimer();
+        try {
+            updateStatus('Submitting MiniMax H3 768P task to fal.ai...');
+            const taskId = await submitMinimaxH3Payload(minimaxPayload);
+            showStatus('MiniMax H3 task created successfully! Check history below.', false, true);
+            addNewTask(taskId, promptValue, minimaxPayload, appState, 'fal-minimax-h3');
+        } catch (error) {
+            console.error('MiniMax H3 Generation Error:', error);
+            showStatus(error.message, true);
+        } finally {
+            setLoadingState(false);
+            stopTimer();
+        }
+        return;
+    }
 
     if (window.KlingApi.isKlingModel(selectedModel)) {
         let klingPayload;
@@ -653,9 +735,9 @@ async function handleGenerate() {
         setLoadingState(true);
         startTimer();
         try {
-            updateStatus('Submitting Kling V3 Standard task to fal.ai...');
+            updateStatus('Submitting Kling V3 Pro task to fal.ai...');
             const taskId = await submitKlingPayload(klingPayload);
-            showStatus('Kling V3 Standard task created successfully! Check history below.', false, true);
+            showStatus('Kling V3 Pro task created successfully! Check history below.', false, true);
             addNewTask(taskId, promptValue, klingPayload, appState, 'fal');
         } catch (error) {
             console.error('Kling Generation Error:', error);
@@ -731,31 +813,21 @@ async function handleGenerate() {
 
     let payload;
     try {
-        if (isInterviewCoderContent) {
+        if (isInterviewCoder) {
             const imageFiles = uploadedFiles.filter(file => file.role === 'reference_image');
-            if (imageFiles.length !== 1 || uploadedFiles.length !== 1) {
-                throw new Error('实验 I2V 模式只支持上传 1 张图片，请移除其他素材。');
+            if (uploadedFiles.length > 1 || imageFiles.length !== uploadedFiles.length) {
+                throw new Error('Seedance 2.0 Unfiltered 最多支持上传 1 张参考图，请移除其他素材。');
             }
-            const imageFile = imageFiles[0];
-            let imageUrl = imageFile.publicUrl;
-            if (!/^https:\/\//i.test(String(imageUrl || ''))) {
-                updateStatus('Uploading I2V reference image to a public HTTPS URL...');
-                const compressedImage = await fetch(imageFile.dataUrl).then(response => response.blob());
-                imageUrl = await uploadReferenceFileViaLocalServer(
-                    imageFile,
-                    compressedImage,
-                    `${imageFile.id}.jpg`
-                );
-                imageFile.publicUrl = imageUrl;
+            if (imageFiles.length === 1) {
+                updateStatus('Uploading Unfiltered reference image to a public HTTPS URL...');
+                await ensurePublicReferenceUrls(imageFiles);
             }
-            payload = window.SeedanceApi.buildInterviewCoderImagePayload({
-                prompt: promptValue,
-                imageUrl,
-            });
-        } else if (isInterviewCoder) {
             payload = window.SeedanceApi.buildInterviewCoderPayload({
-            model: selectedModel,
-            prompt: promptValue,
+                model: selectedModel,
+                prompt: promptValue,
+                duration,
+                aspectRatio,
+                imageUrl: imageFiles[0]?.publicUrl || null,
             });
         } else {
             payload = window.SeedanceApi.buildSeedancePayload({
@@ -782,11 +854,9 @@ async function handleGenerate() {
             throw new Error('Missing BytePlus ARK API key. Please set it in config.local.js.');
         }
 
-        updateStatus(isInterviewCoderContent
-            ? 'Submitting official-content I2V experiment...'
-            : isInterviewCoder
-                ? 'Submitting Mini Unfiltered task...'
-                : 'Submitting task...');
+        updateStatus(isInterviewCoder
+            ? 'Submitting Seedance 2.0 Unfiltered task...'
+            : 'Submitting task...');
         
         const response = await fetch(isInterviewCoder ? '/api/interviewcoder/videos' : COMPLETIONS_URL, {
             method: 'POST',
@@ -849,7 +919,7 @@ async function handleGenerate() {
 }
 
 async function submitKlingPayload(payload) {
-    const response = await fetch('/api/fal/kling-v3-standard/requests', {
+    const response = await fetch('/api/fal/kling-v3-pro/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(window.KlingApi.normalizeKlingPayload(payload)),
@@ -861,6 +931,37 @@ async function submitKlingPayload(payload) {
     const taskId = window.KlingApi.getRequestId(await response.json());
     if (!taskId) throw new Error('fal.ai did not return a request ID.');
     return taskId;
+}
+
+async function submitMinimaxH3Payload(payload) {
+    const response = await fetch('/api/fal/minimax-h3/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`fal.ai API Error: ${response.status} - ${errorText}`);
+    }
+    const taskId = window.MinimaxH3Api.getRequestId(await response.json());
+    if (!taskId) throw new Error('fal.ai did not return a request ID.');
+    return taskId;
+}
+
+async function stripMinimaxH3Audio(videoUrl) {
+    const response = await fetch('/api/fal/minimax-h3/strip-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_url: videoUrl }),
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`移除 H3 音轨失败：${response.status} - ${errorText}`);
+    }
+    const output = await response.json();
+    const mutedVideoUrl = window.MinimaxH3Api.extractVideoUrl(output);
+    if (!mutedVideoUrl) throw new Error('本地服务未返回无音轨视频地址。');
+    return mutedVideoUrl;
 }
 
 
@@ -923,14 +1024,9 @@ function stopTimer() {
 
 // Aspect ratio to resolution mapping adjustments
 aspectRatioSelect.addEventListener('change', (e) => {
-    const val = e.target.value;
-    // Adapt UI if needed based on selected aspect ratio
+    const [ratio] = e.target.value.split('|');
     const videoContainer = document.querySelector('.video-container');
-    if (val.startsWith('16:9')) {
-        videoContainer.style.aspectRatio = '16 / 9';
-    } else if (val.startsWith('9:16')) {
-        videoContainer.style.aspectRatio = '9 / 16';
-    }
+    videoContainer.style.aspectRatio = ratio.replace(':', ' / ');
 });
 
 
@@ -1022,15 +1118,36 @@ function renderTaskHistory() {
             </div>
         ` : '';
 
+        const errorDetails = window.SeedanceApi.getTaskErrorDetails(task);
+        const showErrorDetails = statusClass === 'status-error'
+            && Boolean(errorDetails.code || errorDetails.message);
+        const errorDetailsHtml = showErrorDetails ? `
+            <div class="task-error-details">
+                <div class="task-error-code"></div>
+                <div class="task-error-message"></div>
+            </div>
+        ` : '';
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div class="task-status ${statusClass}">${statusText}</div>
                 ${actionsHtml}
             </div>
             ${mediaHtml}
+            ${errorDetailsHtml}
             <div class="task-prompt-text" title="${task.prompt || ''}">${task.prompt || '暂无描述'}</div>
             <div style="font-size:10px; color:#666;">${new Date(task.createdAt).toLocaleString()}</div>
         `;
+        if (showErrorDetails) {
+            const codeElement = card.querySelector('.task-error-code');
+            const messageElement = card.querySelector('.task-error-message');
+            if (errorDetails.code) {
+                codeElement.textContent = `错误码：${errorDetails.code}`;
+            } else {
+                codeElement.remove();
+            }
+            messageElement.textContent = errorDetails.message || '生成失败，服务未返回详细原因。';
+        }
         tasksGrid.appendChild(card);
     });
 }
@@ -1086,6 +1203,10 @@ async function pollTask(taskId) {
         pollKlingTask(taskId);
         return;
     }
+    if (task?.provider === 'fal-minimax-h3') {
+        pollMinimaxH3Task(taskId);
+        return;
+    }
 
     const isInterviewCoder = task?.provider === 'interviewcoder';
 
@@ -1113,21 +1234,25 @@ async function pollTask(taskId) {
                     : taskData.videoUrl
             });
         } else if (taskData.status === 'error') {
-            updateTask(taskId, { status: 'error', error: taskData.errorMessage });
+            updateTask(taskId, {
+                status: 'error',
+                error: taskData.errorMessage,
+                errorCode: taskData.errorCode,
+            });
         } else {
             updateTask(taskId, { status: taskData.status, progress: taskData.progress || 0 });
             setTimeout(() => pollTask(taskId), pollInterval);
         }
     } catch (e) {
         console.error(e);
-        updateTask(taskId, { status: 'error' });
+        updateTask(taskId, { status: 'error', error: e.message });
     }
 }
 
 async function pollKlingTask(taskId) {
     const pollInterval = 5000;
     try {
-        const statusResponse = await fetch(`/api/fal/kling-v3-standard/requests/${encodeURIComponent(taskId)}/status`);
+        const statusResponse = await fetch(`/api/fal/kling-v3-pro/requests/${encodeURIComponent(taskId)}/status`);
         if (!statusResponse.ok) {
             const errorText = await statusResponse.text();
             throw new Error(`fal.ai status error: ${statusResponse.status} - ${errorText}`);
@@ -1135,7 +1260,7 @@ async function pollKlingTask(taskId) {
 
         const taskData = window.KlingApi.normalizeQueueStatus(await statusResponse.json());
         if (taskData.status === 'succeed') {
-            const resultResponse = await fetch(`/api/fal/kling-v3-standard/requests/${encodeURIComponent(taskId)}/result`);
+            const resultResponse = await fetch(`/api/fal/kling-v3-pro/requests/${encodeURIComponent(taskId)}/result`);
             if (!resultResponse.ok) {
                 const errorText = await resultResponse.text();
                 throw new Error(`fal.ai result error: ${resultResponse.status} - ${errorText}`);
@@ -1143,6 +1268,41 @@ async function pollKlingTask(taskId) {
             const videoUrl = window.KlingApi.extractVideoUrl(await resultResponse.json());
             if (!videoUrl) throw new Error('fal.ai completed the task but returned no video URL.');
             updateTask(taskId, { status: 'succeed', progress: 100, video_url: videoUrl });
+        } else if (taskData.status === 'error') {
+            updateTask(taskId, { status: 'error', error: taskData.errorMessage });
+        } else {
+            updateTask(taskId, { status: taskData.status, progress: taskData.progress });
+            setTimeout(() => pollTask(taskId), pollInterval);
+        }
+    } catch (error) {
+        console.error(error);
+        updateTask(taskId, { status: 'error', error: error.message });
+    }
+}
+
+async function pollMinimaxH3Task(taskId) {
+    const pollInterval = 5000;
+    const task = taskHistory.find(item => item.id === taskId);
+    try {
+        const statusResponse = await fetch(`/api/fal/minimax-h3/requests/${encodeURIComponent(taskId)}/status`);
+        if (!statusResponse.ok) {
+            const errorText = await statusResponse.text();
+            throw new Error(`fal.ai status error: ${statusResponse.status} - ${errorText}`);
+        }
+
+        const taskData = window.MinimaxH3Api.normalizeQueueStatus(await statusResponse.json());
+        if (taskData.status === 'succeed') {
+            const resultResponse = await fetch(`/api/fal/minimax-h3/requests/${encodeURIComponent(taskId)}/result`);
+            if (!resultResponse.ok) {
+                const errorText = await resultResponse.text();
+                throw new Error(`fal.ai result error: ${resultResponse.status} - ${errorText}`);
+            }
+            const videoUrl = window.MinimaxH3Api.extractVideoUrl(await resultResponse.json());
+            if (!videoUrl) throw new Error('fal.ai completed the H3 task but returned no video URL.');
+            const deliveredVideoUrl = window.MinimaxH3Api.shouldStripAudio(task?.appState?.generateAudio)
+                ? await stripMinimaxH3Audio(videoUrl)
+                : videoUrl;
+            updateTask(taskId, { status: 'succeed', progress: 100, video_url: deliveredVideoUrl });
         } else if (taskData.status === 'error') {
             updateTask(taskId, { status: 'error', error: taskData.errorMessage });
         } else {
@@ -1224,9 +1384,16 @@ window.regenerateTask = async function(taskId) {
     try {
         if (task.provider === 'fal') {
             const newTaskId = await submitKlingPayload(task.payload);
-            showStatus('Kling V3 Standard task recreated successfully!', false, true);
+            showStatus('Kling V3 Pro task recreated successfully!', false, true);
             setLoadingState(false);
             addNewTask(newTaskId, task.prompt, task.payload, task.appState, 'fal');
+            return;
+        }
+        if (task.provider === 'fal-minimax-h3') {
+            const newTaskId = await submitMinimaxH3Payload(task.payload);
+            showStatus('MiniMax H3 task recreated successfully!', false, true);
+            setLoadingState(false);
+            addNewTask(newTaskId, task.prompt, task.payload, task.appState, 'fal-minimax-h3');
             return;
         }
 

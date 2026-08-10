@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const {
-    KLING_V3_STANDARD_MODEL,
+    KLING_V3_PRO_MODEL,
     buildKlingPayload,
     extractVideoUrl,
     getRequestId,
@@ -11,7 +11,7 @@ const {
     normalizeQueueStatus,
 } = require('./kling_api');
 
-test('builds a Kling V3 Standard first-last-frame payload', () => {
+test('builds a Kling V3 Pro first-last-frame payload', () => {
     assert.deepEqual(buildKlingPayload({
         prompt: 'Move smoothly from @Image1 to @Image2',
         startImageUrl: 'data:image/jpeg;base64,aaa',
@@ -27,8 +27,8 @@ test('builds a Kling V3 Standard first-last-frame payload', () => {
     });
 });
 
-test('recognizes the Kling V3 Standard endpoint and validates its inputs', () => {
-    assert.equal(isKlingModel(KLING_V3_STANDARD_MODEL), true);
+test('recognizes the Kling V3 Pro endpoint and validates its inputs', () => {
+    assert.equal(isKlingModel(KLING_V3_PRO_MODEL), true);
     assert.throws(
         () => buildKlingPayload({ prompt: 'animate', startImageUrl: 'a', duration: 5 }),
         /同时上传首帧和尾帧/
@@ -39,7 +39,7 @@ test('recognizes the Kling V3 Standard endpoint and validates its inputs', () =>
     );
 });
 
-test('migrates an O3 payload for V3 Standard regeneration', () => {
+test('migrates an O3 payload for V3 Pro regeneration', () => {
     assert.deepEqual(normalizeKlingPayload({
         prompt: 'animate',
         image_url: 'start',

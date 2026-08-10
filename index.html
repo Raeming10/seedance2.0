@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Video Studio | Seedance & Kling</title>
-    <meta name="description" content="Generate AI videos with Seedance and Kling V3 Standard.">
+    <meta name="description" content="Generate AI videos with Seedance and Kling V3 Pro.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,7 @@
                 <i class="ph-fill ph-film-strip"></i>
                 AI Video <span>Studio</span>
             </h1>
-            <p class="subtitle">Seedance 2.0 + fal.ai Kling V3 Standard video generation</p>
+            <p class="subtitle">Seedance 2.0 + fal.ai Kling V3 Pro video generation</p>
         </header>
 
         <section class="glass-panel main-panel">
@@ -85,11 +85,13 @@
                         <div class="toolbar-pill select-pill" style="min-width: 150px;">
                             <i class="ph ph-hexagon"></i>
                             <select id="modelSelect">
-                                <option value="dreamina-seedance-2-0-260128" selected>Seedance 2.0</option>
-                                <option value="dreamina-seedance-2-0-mini-260615">Seedance 2 Mini</option>
+                                <option value="dreamina-seedance-2-0-260128" selected>Seedance 2.0 Standard</option>
+                                <option value="dreamina-seedance-2-0-mini-260615">Seedance 2.0 Mini</option>
+                                <option value="seedance-2.0-unfiltered">Seedance 2.0 Standard Unfiltered</option>
+                                <option value="seedance-2.0-fast-unfiltered">Seedance 2.0 Fast Unfiltered</option>
                                 <option value="seedance-2.0-mini-unfiltered">Seedance 2.0 Mini Unfiltered</option>
-                                <option value="fal-ai/kling-video/v3/standard/image-to-video">Kling V3 Standard 首尾帧 (fal.ai)</option>
-                                <option value="seedance-2.0-mini-unfiltered-content-i2v">实验 I2V · Mini Unfiltered（文档 inputs）</option>
+                                <option value="fal-ai/kling-video/v3/pro/image-to-video">Kling V3 Pro 首尾帧 (fal.ai)</option>
+                                <option value="minimax/h3/image-to-video">MiniMax H3 图生视频 768P (fal.ai)</option>
                             </select>
                         </div>
                         <div class="toolbar-pill select-pill" style="min-width: 110px;">
@@ -106,7 +108,10 @@
                             <select id="aspectRatio">
                                 <option value="9:16|1080x1920" selected>9:16</option>
                                 <option value="16:9|1920x1080">16:9</option>
+                                <option value="4:3|1440x1080">4:3</option>
+                                <option value="3:4|1080x1440">3:4</option>
                                 <option value="1:1|1080x1080">1:1</option>
+                                <option value="21:9|2520x1080">21:9</option>
                             </select>
                         </div>
 
@@ -187,6 +192,7 @@
     <script src="config.local.js"></script>
     <script src="seedance_api.js"></script>
     <script src="kling_api.js"></script>
+    <script src="minimax_h3_api.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

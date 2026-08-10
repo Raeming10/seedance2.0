@@ -8,15 +8,23 @@ const { pipeline } = require('node:stream/promises');
 const PORT = Number(process.env.PORT || 8000);
 const ROOT = __dirname;
 const UPLOAD_DIR = join(ROOT, '.uploads');
+const OUTPUT_DIR = join(ROOT, '.outputs');
 const MAX_UPLOAD_BYTES = 512 * 1024 * 1024;
 const UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
 const MAX_FAL_REQUEST_BYTES = 25 * 1024 * 1024;
 const INTERVIEWCODER_API_TIMEOUT_MS = 30 * 1000;
 const INTERVIEWCODER_MEDIA_TIMEOUT_MS = 15 * 60 * 1000;
-const KLING_V3_STANDARD_ENDPOINT = 'fal-ai/kling-video/v3/standard/image-to-video';
+const KLING_V3_PRO_ENDPOINT = 'fal-ai/kling-video/v3/pro/image-to-video';
 const KLING_QUEUE_APP = 'fal-ai/kling-video';
+const MINIMAX_H3_ENDPOINT = 'minimax/h3/image-to-video';
+const MINIMAX_H3_QUEUE_APP = 'minimax/h3';
 const FAL_QUEUE_BASE_URL = 'https://queue.fal.run';
 const INTERVIEWCODER_BASE_URL = 'https://www.interviewcoder.ai';
+const INTERVIEWCODER_UNFILTERED_MODELS = new Set([
+    'seedance-2.0-unfiltered',
+    'seedance-2.0-fast-unfiltered',
+    'seedance-2.0-mini-unfiltered',
+]);
 
 function loadLocalEnv() {
     const envPath = join(ROOT, '.env');
@@ -38,6 +46,7 @@ loadLocalEnv();
 let publicBaseUrl = process.env.PUBLIC_BASE_URL || null;
 
 mkdirSync(UPLOAD_DIR, { recursive: true });
+mkdirSync(OUTPUT_DIR, { recursive: true });
 
 const mimeTypes = {
     '.css': 'text/css; charset=utf-8',
@@ -85,7 +94,9 @@ function removeExpiredUploads() {
 }
 
 function serveStatic(req, res, pathname) {
-    const hiddenSegments = pathname.split('/').filter(segment => segment.startsWith('.') && segment !== '.uploads');
+    const hiddenSegments = pathname.split('/').filter(segment => (
+        segment.startsWith('.') && segment !== '.uploads' && segment !== '.outputs'
+    ));
     if (hiddenSegments.length > 0) {
         res.writeHead(403);
         res.end('Forbidden');
@@ -109,7 +120,9 @@ function serveStatic(req, res, pathname) {
 
     res.writeHead(200, {
         'Content-Type': mimeTypes[extname(filePath).toLowerCase()] || 'application/octet-stream',
-        'Cache-Control': pathname.startsWith('/.uploads/') ? 'public, max-age=7200' : 'no-cache',
+        'Cache-Control': pathname.startsWith('/.uploads/') || pathname.startsWith('/.outputs/')
+            ? 'public, max-age=7200'
+            : 'no-cache',
     });
     createReadStream(filePath).pipe(res);
 }
@@ -207,6 +220,68 @@ async function forwardFalRequest(res, targetUrl, options = {}) {
     res.end(responseText);
 }
 
+function isAllowedFalMediaUrl(value) {
+    try {
+        const mediaUrl = new URL(String(value || ''));
+        const isFalMedia = mediaUrl.hostname === 'fal.media' || mediaUrl.hostname.endsWith('.fal.media');
+        const isFalGoogleStorage = mediaUrl.hostname === 'storage.googleapis.com'
+            && mediaUrl.pathname.startsWith('/falserverless/');
+        return mediaUrl.protocol === 'https:' && (isFalMedia || isFalGoogleStorage);
+    } catch (_) {
+        return false;
+    }
+}
+
+function runAudioStripper(inputPath, outputPath) {
+    return new Promise((resolveStrip, rejectStrip) => {
+        const child = spawn('/usr/bin/swift', [join(ROOT, 'strip_audio.swift'), inputPath, outputPath], {
+            stdio: ['ignore', 'ignore', 'pipe'],
+        });
+        let stderr = '';
+        const timeout = setTimeout(() => {
+            child.kill('SIGKILL');
+            rejectStrip(new Error('Removing the H3 audio track timed out.'));
+        }, INTERVIEWCODER_MEDIA_TIMEOUT_MS);
+
+        child.stderr.on('data', chunk => {
+            stderr = `${stderr}${chunk}`.slice(-8_000);
+        });
+        child.on('error', error => {
+            clearTimeout(timeout);
+            rejectStrip(error);
+        });
+        child.on('exit', code => {
+            clearTimeout(timeout);
+            if (code === 0) resolveStrip();
+            else rejectStrip(new Error(stderr.trim() || `Audio removal exited with code ${code}.`));
+        });
+    });
+}
+
+async function createMutedH3Video(videoUrl) {
+    const sourceName = safeFilename('h3-source.mp4');
+    const outputName = safeFilename('h3-no-audio.mp4');
+    const sourcePath = join(UPLOAD_DIR, sourceName);
+    const outputPath = join(OUTPUT_DIR, outputName);
+
+    try {
+        const response = await fetch(videoUrl, {
+            signal: AbortSignal.timeout(INTERVIEWCODER_MEDIA_TIMEOUT_MS),
+        });
+        if (!response.ok || !response.body) {
+            throw new Error(`Could not download the H3 result (${response.status}).`);
+        }
+        await pipeline(Readable.fromWeb(response.body), createWriteStream(sourcePath));
+        await runAudioStripper(sourcePath, outputPath);
+        return `/.outputs/${encodeURIComponent(outputName)}`;
+    } catch (error) {
+        try { unlinkSync(outputPath); } catch (_) {}
+        throw error;
+    } finally {
+        try { unlinkSync(sourcePath); } catch (_) {}
+    }
+}
+
 async function handleFalApi(req, res, url) {
     const requestHostname = new URL(`http://${req.headers.host || 'localhost'}`).hostname;
     if (!['localhost', '127.0.0.1', '[::1]', '::1'].includes(requestHostname)) {
@@ -214,22 +289,58 @@ async function handleFalApi(req, res, url) {
         return true;
     }
 
-    if (req.method === 'POST' && url.pathname === '/api/fal/kling-v3-standard/requests') {
+    if (req.method === 'POST' && url.pathname === '/api/fal/minimax-h3/strip-audio') {
         const input = await readJsonBody(req);
-        await forwardFalRequest(res, `${FAL_QUEUE_BASE_URL}/${KLING_V3_STANDARD_ENDPOINT}`, {
+        if (!isAllowedFalMediaUrl(input.video_url)) {
+            json(res, 400, { error: 'A valid fal media URL is required.' });
+            return true;
+        }
+        const videoUrl = await createMutedH3Video(input.video_url);
+        json(res, 200, { video: { url: videoUrl } });
+        return true;
+    }
+
+    const isKlingSubmitPath = [
+        '/api/fal/kling-v3-pro/requests',
+        '/api/fal/kling-v3-standard/requests',
+    ].includes(url.pathname);
+    if (req.method === 'POST' && isKlingSubmitPath) {
+        const input = await readJsonBody(req);
+        await forwardFalRequest(res, `${FAL_QUEUE_BASE_URL}/${KLING_V3_PRO_ENDPOINT}`, {
             method: 'POST',
             body: JSON.stringify(input),
         });
         return true;
     }
 
-    const match = url.pathname.match(/^\/api\/fal\/kling-v3-standard\/requests\/([^/]+)\/(status|result)$/);
+    if (req.method === 'POST' && url.pathname === '/api/fal/minimax-h3/requests') {
+        const input = await readJsonBody(req);
+        await forwardFalRequest(res, `${FAL_QUEUE_BASE_URL}/${MINIMAX_H3_ENDPOINT}`, {
+            method: 'POST',
+            body: JSON.stringify(input),
+        });
+        return true;
+    }
+
+    const match = url.pathname.match(/^\/api\/fal\/kling-v3-(?:pro|standard)\/requests\/([^/]+)\/(status|result)$/);
     if (req.method === 'GET' && match) {
         const requestId = encodeURIComponent(decodeURIComponent(match[1]));
         const suffix = match[2] === 'status' ? '/status' : '';
         await forwardFalRequest(
             res,
             `${FAL_QUEUE_BASE_URL}/${KLING_QUEUE_APP}/requests/${requestId}${suffix}`,
+            { method: 'GET' }
+        );
+        return true;
+    }
+
+    const minimaxMatch = url.pathname.match(/^\/api\/fal\/minimax-h3\/requests\/([^/]+)\/(status|result)$/);
+    if (req.method === 'GET' && minimaxMatch) {
+        const requestId = encodeURIComponent(decodeURIComponent(minimaxMatch[1]));
+        const suffix = minimaxMatch[2] === 'status' ? '/status' : '';
+        await forwardFalRequest(
+            res,
+            `${FAL_QUEUE_BASE_URL}/${MINIMAX_H3_QUEUE_APP}/requests/${requestId}${suffix}`,
             { method: 'GET' }
         );
         return true;
@@ -291,8 +402,8 @@ async function handleInterviewCoder(req, res, url) {
 
     if (req.method === 'POST' && url.pathname === '/api/interviewcoder/videos') {
         const payload = await readJsonBody(req);
-        if (payload.model !== 'seedance-2.0-mini-unfiltered') {
-            json(res, 400, { error: 'Only seedance-2.0-mini-unfiltered is allowed through this proxy.' });
+        if (!INTERVIEWCODER_UNFILTERED_MODELS.has(payload.model)) {
+            json(res, 400, { error: 'Unsupported InterviewCoder Unfiltered model.' });
             return true;
         }
         const idempotencyKey = req.headers['idempotency-key'];

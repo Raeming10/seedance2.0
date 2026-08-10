@@ -7,14 +7,20 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const DEFAULT_BASE_URL = 'https://ark.ap-southeast.bytepluses.com/api/v3';
     const DEFAULT_MODEL = 'dreamina-seedance-2-0-260128';
-    const INTERVIEWCODER_MINI_UNFILTERED_MODEL = 'seedance-2.0-mini-unfiltered';
-    const INTERVIEWCODER_MINI_UNFILTERED_CONTENT_MODEL = 'seedance-2.0-mini-unfiltered-content-i2v';
+    const INTERVIEWCODER_UNFILTERED_MODELS = [
+        'seedance-2.0-unfiltered',
+        'seedance-2.0-fast-unfiltered',
+        'seedance-2.0-mini-unfiltered',
+    ];
+    const INTERVIEWCODER_ASPECT_RATIOS = ['16:9', '9:16', '4:3', '3:4', '1:1', '21:9'];
     const MODEL_OPTIONS = [
-        { label: 'Seedance 2.0', value: 'dreamina-seedance-2-0-260128' },
-        { label: 'Seedance 2 Mini', value: 'dreamina-seedance-2-0-mini-260615' },
-        { label: 'Seedance 2.0 Mini Unfiltered', value: INTERVIEWCODER_MINI_UNFILTERED_MODEL },
-        { label: 'Kling V3 Standard 首尾帧 (fal.ai)', value: 'fal-ai/kling-video/v3/standard/image-to-video' },
-        { label: '实验 I2V · Mini Unfiltered（文档 inputs）', value: INTERVIEWCODER_MINI_UNFILTERED_CONTENT_MODEL },
+        { label: 'Seedance 2.0 Standard', value: 'dreamina-seedance-2-0-260128' },
+        { label: 'Seedance 2.0 Mini', value: 'dreamina-seedance-2-0-mini-260615' },
+        { label: 'Seedance 2.0 Standard Unfiltered', value: 'seedance-2.0-unfiltered' },
+        { label: 'Seedance 2.0 Fast Unfiltered', value: 'seedance-2.0-fast-unfiltered' },
+        { label: 'Seedance 2.0 Mini Unfiltered', value: 'seedance-2.0-mini-unfiltered' },
+        { label: 'Kling V3 Pro 首尾帧 (fal.ai)', value: 'fal-ai/kling-video/v3/pro/image-to-video' },
+        { label: 'MiniMax H3 图生视频 768P (fal.ai)', value: 'minimax/h3/image-to-video' },
     ];
 
     function stripTrailingSlash(value) {
@@ -58,52 +64,45 @@
     }
 
     function isInterviewCoderModel(model) {
-        return model === INTERVIEWCODER_MINI_UNFILTERED_MODEL
-            || model === INTERVIEWCODER_MINI_UNFILTERED_CONTENT_MODEL;
+        return INTERVIEWCODER_UNFILTERED_MODELS.includes(model);
     }
 
-    function isInterviewCoderContentModel(model) {
-        return model === INTERVIEWCODER_MINI_UNFILTERED_CONTENT_MODEL;
-    }
-
-    function buildInterviewCoderPayload({ model = INTERVIEWCODER_MINI_UNFILTERED_MODEL, prompt }) {
+    function buildInterviewCoderPayload({ model, prompt, duration, aspectRatio, imageUrl = null }) {
         if (!isInterviewCoderModel(model)) {
             throw new Error('Unsupported InterviewCoder model.');
         }
         if (!String(prompt || '').trim()) {
             throw new Error('A prompt is required.');
         }
-        return {
-            model,
-            prompt: String(prompt).trim(),
-            duration_seconds: 5,
-            resolution: '480p',
-            aspect_ratio: '16:9',
-            generate_audio: false,
-        };
-    }
-
-    function buildInterviewCoderImagePayload({ prompt, imageUrl }) {
-        const normalizedPrompt = String(prompt || '').trim();
-        if (!normalizedPrompt) {
-            throw new Error('A prompt is required.');
+        const normalizedDuration = Number(duration);
+        if (!Number.isInteger(normalizedDuration) || normalizedDuration < 4 || normalizedDuration > 15) {
+            throw new Error('InterviewCoder videos must be 4 to 15 seconds.');
         }
-        if (!/^https:\/\//i.test(String(imageUrl || ''))) {
+        if (!INTERVIEWCODER_ASPECT_RATIOS.includes(aspectRatio)) {
+            throw new Error('Unsupported aspect ratio for InterviewCoder.');
+        }
+        if (imageUrl && !/^https:\/\//i.test(String(imageUrl))) {
             throw new Error('InterviewCoder I2V requires a directly readable public HTTPS image URL.');
         }
-        return {
-            model: INTERVIEWCODER_MINI_UNFILTERED_MODEL,
-            prompt: normalizedPrompt,
-            inputs: [{
+
+        const payload = {
+            model,
+            prompt: String(prompt).trim(),
+            duration_seconds: normalizedDuration,
+            resolution: '720p',
+            aspect_ratio: aspectRatio,
+            generate_audio: false,
+        };
+
+        if (imageUrl) {
+            payload.inputs = [{
                 type: 'image_url',
                 role: 'reference_image',
                 url: imageUrl,
-            }],
-            duration_seconds: 5,
-            resolution: '480p',
-            aspect_ratio: '16:9',
-            generate_audio: false,
-        };
+            }];
+        }
+
+        return payload;
     }
 
     function buildSeedancePayload({
@@ -239,18 +238,27 @@
         return null;
     }
 
+    function getTaskErrorDetails(task) {
+        const error = task?.error;
+        return {
+            code: String(task?.errorCode || (typeof error === 'object' ? error?.code : '') || ''),
+            message: String((typeof error === 'string' ? error : error?.message) || task?.errorMessage || ''),
+        };
+    }
+
     function normalizeTaskStatus(responseBody) {
         const task = responseBody?.data?.status ? responseBody.data : responseBody;
         const rawStatus = String(task?.status || '').toLowerCase();
         const videoUrl = extractVideoUrl(task?.content);
         const errorMessage = task?.error?.message || task?.message || null;
+        const errorCode = task?.error?.code || null;
 
         if (['succeed', 'succeeded', 'success', 'completed', 'done'].includes(rawStatus)) {
-            return { status: 'succeed', videoUrl, progress: 100, errorMessage };
+            return { status: 'succeed', videoUrl, progress: 100, errorMessage, errorCode };
         }
 
         if (['failed', 'error', 'cancelled', 'canceled', 'expired'].includes(rawStatus)) {
-            return { status: 'error', videoUrl, progress: task?.progress || 0, errorMessage };
+            return { status: 'error', videoUrl, progress: task?.progress || 0, errorMessage, errorCode };
         }
 
         return {
@@ -258,14 +266,14 @@
             videoUrl,
             progress: task?.progress || 0,
             errorMessage,
+            errorCode,
         };
     }
 
     return {
-        INTERVIEWCODER_MINI_UNFILTERED_MODEL,
-        INTERVIEWCODER_MINI_UNFILTERED_CONTENT_MODEL,
+        INTERVIEWCODER_ASPECT_RATIOS: [...INTERVIEWCODER_ASPECT_RATIOS],
+        INTERVIEWCODER_UNFILTERED_MODELS: [...INTERVIEWCODER_UNFILTERED_MODELS],
         buildAuthHeaders,
-        buildInterviewCoderImagePayload,
         buildInterviewCoderPayload,
         buildSeedanceReferenceItems,
         buildSeedancePayload,
@@ -274,9 +282,9 @@
         getConfig,
         getModelOptions,
         getReferenceRoleForMimeType,
+        getTaskErrorDetails,
         getTaskId,
         isInterviewCoderModel,
-        isInterviewCoderContentModel,
         mediaNeedsPublicUpload,
         normalizePromptReferences,
         normalizeTaskStatus,
