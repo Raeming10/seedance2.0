@@ -2,10 +2,9 @@
   "name": "seedance-internal-tool",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "test": "node --test *.test.js && vitest run",
-    "test:worker": "vitest run",
+    "test": "node --test *.test.js && NODE_OPTIONS=--disable-warning=DEP0040 vitest run",
+    "test:worker": "NODE_OPTIONS=--disable-warning=DEP0040 vitest run",
     "typecheck": "tsc --noEmit && wrangler types --check && wrangler types worker-media-configuration.d.ts --config wrangler.media.jsonc --env-interface MediaEnv --check",
     "cf:types": "wrangler types && wrangler types worker-media-configuration.d.ts --config wrangler.media.jsonc --env-interface MediaEnv",
     "deploy:media": "wrangler deploy --config wrangler.media.jsonc",

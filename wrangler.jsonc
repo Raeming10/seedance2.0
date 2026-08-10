@@ -16,10 +16,23 @@
     }
   ],
   "vars": {
-    "MEDIA_BASE_URL": "https://seedance-internal-media.invalid"
+    "MEDIA_BASE_URL": "https://seedance-internal-media.invalid",
+    "AUTH_EMAIL": "studio-admin@internal.local"
   },
+  "ratelimits": [
+    {
+      "name": "LOGIN_RATE_LIMITER",
+      "namespace_id": "80901",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
   "secrets": {
     "required": [
+      "AUTH_PASSWORD_HASH",
+      "SESSION_SIGNING_KEY",
       "BYTEPLUS_API_KEY",
       "FAL_KEY",
       "INTERVIEWCODER_API_KEY",

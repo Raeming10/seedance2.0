@@ -2,11 +2,11 @@
 
 ## Goal
 
-Deploy AI Video Studio to Cloudflare as an internal tool whose UI and API routes require Cloudflare Access authentication. Keep provider credentials out of browser assets and version control, and prevent unauthenticated visitors from consuming BytePlus, fal.ai, or InterviewCoder APIs.
+Deploy AI Video Studio to Cloudflare as an internal tool whose UI and API routes require one fixed email/password login. Keep login and provider credentials out of browser assets and version control, and prevent unauthenticated visitors from consuming BytePlus, fal.ai, or InterviewCoder APIs.
 
 ## Architecture
 
-The deployment uses two Workers and one private R2 bucket. `seedance-internal-tool` serves the application assets and proxies all provider APIs. Cloudflare Access protects this Worker by name and allows only one explicitly configured identity. Static assets use `run_worker_first: true`, so HTML, JavaScript, CSS, and API requests all pass through the same Access boundary.
+The deployment uses two Workers and one private R2 bucket. `seedance-internal-tool` serves the login page, application assets, and all provider APIs. The Worker verifies a PBKDF2 password hash stored as a Secret and issues a short-lived HMAC-signed `HttpOnly`, `Secure`, `SameSite=Strict` session cookie. Static assets use `run_worker_first: true`, so HTML, JavaScript, CSS, uploads, and API requests all pass through the same authentication boundary.
 
 `seedance-internal-media` is a narrow media-delivery Worker used only when external generation providers need to fetch uploaded reference media. The app Worker streams uploads directly into the private R2 bucket and returns a short-lived, HMAC-signed media URL. The media Worker verifies the signature and expiry before streaming the R2 object. It exposes no listing endpoint, no API proxy, and no application assets. This separates human authentication from machine-readable reference URLs without making the bucket public.
 
@@ -20,7 +20,6 @@ MiniMax H3 audio stripping currently invokes a local macOS Swift process. Worker
 
 ## Security and operations
 
-Cloudflare Access is deny-by-default and will be configured for the Worker itself, including preview deployments. The policy will include exactly one email identity and will not use `Everyone`, a whole email domain, or a blanket OTP login-method rule. Provider secrets and the shared media-signing secret are uploaded with Wrangler Secret commands and are absent from source and `wrangler.jsonc`.
+The fixed internal email is non-secret configuration. Only a versioned PBKDF2 hash is stored as `AUTH_PASSWORD_HASH`; the plaintext password is generated once for the user and never written to disk or source. `SESSION_SIGNING_KEY` signs twelve-hour session cookies. Login attempts are protected by Cloudflare's Rate Limiting binding and all protected API routes reject missing, malformed, expired, or tampered cookies before invoking any upstream service. Provider secrets and signing secrets are uploaded with Wrangler Secret commands and are absent from source and `wrangler.jsonc`.
 
-Workers observability is enabled with structured errors that never log request authorization headers or secret values. The R2 bucket has no public development URL or custom domain. Deployment verification checks that the app URL redirects unauthenticated requests to Access, signed media URLs reject tampering and expiry, and the authenticated Worker can reach each configured provider route without exposing credentials.
-
+Workers observability is enabled with structured errors that never log passwords, cookies, authorization headers, or secret values. The R2 bucket has no public development URL or custom domain. Deployment verification checks that unauthenticated app and API requests redirect or return 401, login throttling returns 429, signed media URLs reject tampering and expiry, and an authenticated session can reach each configured provider route without exposing credentials.
