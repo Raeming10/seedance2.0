@@ -5,3 +5,4 @@ config.local.js
 .DS_Store
 *.log
 node_modules/
+.worktrees/
