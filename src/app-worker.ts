@@ -1,4 +1,5 @@
 import { createSignedMediaUrl } from "./media-signing";
+import { handleProviderRequest } from "./providers";
 import {
   buildClearSessionCookie,
   buildSessionCookie,
@@ -70,6 +71,23 @@ export async function handleUploadReference(
 
 async function handleProtectedRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+  const providerResponse = await handleProviderRequest(request, env);
+  if (providerResponse) return providerResponse;
+  if (request.method === "GET" && url.pathname === "/runtime-config.js") {
+    return new Response([
+      "window.SEEDANCE_CONFIG = {",
+      '  baseUrl: "/api/byteplus/v3",',
+      '  model: "dreamina-seedance-2-0-260128",',
+      "  serverManagedAuth: true,",
+      "};",
+    ].join("\n"), {
+      headers: {
+        "Content-Type": "text/javascript; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
   if (request.method === "GET" && url.pathname === "/api/upload-status") {
     return json(200, { ready: true, publicBaseUrl: env.MEDIA_BASE_URL });
   }
@@ -78,6 +96,29 @@ async function handleProtectedRequest(request: Request, env: Env): Promise<Respo
     "/api/upload-reference-video",
   ].includes(url.pathname)) {
     return handleUploadReference(request, env);
+  }
+  if (url.pathname.startsWith("/api/")) return json(404, { error: "Not found" });
+  if (["GET", "HEAD"].includes(request.method)) {
+    const response = await env.ASSETS.fetch(request);
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "no-cache");
+    headers.set("Content-Security-Policy", [
+      "default-src 'self'",
+      "script-src 'self' https://unpkg.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      "media-src 'self' blob: https:",
+      "connect-src 'self' https:",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "base-uri 'none'",
+      "form-action 'self'",
+    ].join("; "));
+    headers.set("Referrer-Policy", "no-referrer");
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("X-Frame-Options", "DENY");
+    return new Response(response.body, { status: response.status, headers });
   }
   return json(404, { error: "Not found" });
 }
