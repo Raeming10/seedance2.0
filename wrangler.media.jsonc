@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "seedance-internal-media",
+  "account_id": "a7d6ae0309680f3ff8859d969c58725f",
   "main": "src/media-worker.ts",
   "compatibility_date": "2026-08-08",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
   "r2_buckets": [
     {
       "binding": "MEDIA",

@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "seedance-internal-tool",
+  "account_id": "a7d6ae0309680f3ff8859d969c58725f",
   "main": "src/app-worker.ts",
   "compatibility_date": "2026-08-08",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
@@ -16,7 +19,7 @@
     }
   ],
   "vars": {
-    "MEDIA_BASE_URL": "https://seedance-internal-media.invalid",
+    "MEDIA_BASE_URL": "https://seedance-internal-media.zjudn2013.workers.dev",
     "AUTH_EMAIL": "studio-admin@internal.local"
   },
   "ratelimits": [

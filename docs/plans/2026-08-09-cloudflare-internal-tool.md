@@ -22,7 +22,7 @@
 - Generate: `worker-configuration.d.ts`
 
 1. Install current Wrangler, TypeScript, Vitest, and the Cloudflare Workers Vitest integration.
-2. Configure both Workers with compatibility date `2026-08-09`, `nodejs_compat`, observability, static asset routing, the shared R2 binding, and a cleanup cron on the media Worker.
+2. Configure both Workers with compatibility date `2026-08-08`, `nodejs_compat`, observability, static asset routing, the shared R2 binding, and a cleanup cron on the media Worker.
 3. Run `wrangler types` and `tsc --noEmit` to validate bindings and configuration.
 4. Commit the scaffold.
 
@@ -98,7 +98,7 @@
 - R2 bucket: `seedance-internal-media`
 - Secrets: `AUTH_PASSWORD_HASH`, `SESSION_SIGNING_KEY`, `BYTEPLUS_API_KEY`, `FAL_KEY`, `INTERVIEWCODER_API_KEY`, `MEDIA_SIGNING_KEY`
 
-1. Authenticate Wrangler and confirm the exact personal Cloudflare account.
+1. Authenticate Wrangler and pin both configurations to The Influence Company account (`a7d6ae0309680f3ff8859d969c58725f`).
 2. Create the R2 bucket without public access.
 3. Upload provider Secrets directly from ignored local files without printing values.
 4. Generate a random 32-byte media signing key and upload the same value to both Workers without writing it to disk.
