@@ -1,5 +1,6 @@
 const seedanceConfig = window.SeedanceApi.getConfig();
 const API_KEY = seedanceConfig.apiKey;
+const SERVER_MANAGED_AUTH = seedanceConfig.serverManagedAuth === true;
 const MODEL = seedanceConfig.model;
 const COMPLETIONS_URL = seedanceConfig.createUrl;
 const FILES_URL = seedanceConfig.filesUrl;
@@ -19,6 +20,15 @@ let lastFrameDataUrl = null;
 
 const referenceModeSelect = document.getElementById('referenceMode');
 const firstLastDropZone = document.getElementById('firstLastDropZone');
+document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+document.getElementById('closeVideoModalBtn').addEventListener('click', closeVideoModal);
+
+['first', 'last'].forEach(type => {
+    const slot = document.getElementById(type + 'FrameSlot');
+    slot.addEventListener('click', () => document.getElementById(type + 'FrameInput').click());
+    slot.addEventListener('dragover', event => event.preventDefault());
+    slot.addEventListener('drop', event => window.handleFLDrop(event, type));
+});
 
 referenceModeSelect.addEventListener('change', () => {
     if (referenceModeSelect.value === 'first_last') {
@@ -850,7 +860,7 @@ async function handleGenerate() {
 
     
     try {
-        if (!isInterviewCoder && !API_KEY) {
+        if (!isInterviewCoder && !API_KEY && !SERVER_MANAGED_AUTH) {
             throw new Error('Missing BytePlus ARK API key. Please set it in config.local.js.');
         }
 
@@ -1399,7 +1409,7 @@ window.regenerateTask = async function(taskId) {
 
         const isInterviewCoder = task.provider === 'interviewcoder'
             || window.SeedanceApi.isInterviewCoderModel(task.payload.model);
-        if (!isInterviewCoder && !API_KEY) {
+        if (!isInterviewCoder && !API_KEY && !SERVER_MANAGED_AUTH) {
             throw new Error('Missing BytePlus ARK API key. Please set it in config.local.js.');
         }
 

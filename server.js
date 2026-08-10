@@ -487,7 +487,10 @@ const server = createServer(async (req, res) => {
         }
 
         if (req.method === 'GET' || req.method === 'HEAD') {
-            serveStatic(req, res, decodeURIComponent(url.pathname));
+            const staticPath = url.pathname === '/runtime-config.js'
+                ? '/config.local.js'
+                : decodeURIComponent(url.pathname);
+            serveStatic(req, res, staticPath);
             return;
         }
 

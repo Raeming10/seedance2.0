@@ -33,6 +33,7 @@
             accountId: '',
             apiKeyName: '',
             apiKey: '',
+            serverManagedAuth: false,
             model: DEFAULT_MODEL,
             baseUrl: DEFAULT_BASE_URL,
             ...runtimeConfig,

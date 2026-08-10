@@ -47,7 +47,7 @@
 
                     <!-- Distinct First and Last Frame Mode Upload Dropzone (Left) -->
                     <div id="firstLastDropZone" class="first-last-widget hidden" style="display:flex; gap:0.5rem; white-space:nowrap;">
-                        <div class="fl-slot" id="firstFrameSlot" onclick="document.getElementById('firstFrameInput').click()" ondragover="event.preventDefault()" ondrop="window.handleFLDrop(event, 'first')">
+                        <div class="fl-slot" id="firstFrameSlot">
                             <div class="fl-placeholder" id="firstFramePlaceholder">
                                 <i class="ph ph-plus"></i>
                                 <span style="font-size: 0.75rem; margin-top: 0.2rem; color: var(--text-muted);">上传首帧</span>
@@ -55,7 +55,7 @@
                             <input type="file" id="firstFrameInput" accept="image/*" class="hidden-file-input">
                             <div id="firstFramePreview" class="fl-preview hidden"></div>
                         </div>
-                        <div class="fl-slot" id="lastFrameSlot" onclick="document.getElementById('lastFrameInput').click()" ondragover="event.preventDefault()" ondrop="window.handleFLDrop(event, 'last')">
+                        <div class="fl-slot" id="lastFrameSlot">
                             <div class="fl-placeholder" id="lastFramePlaceholder">
                                 <i class="ph ph-plus"></i>
                                 <span style="font-size: 0.75rem; margin-top: 0.2rem; color: var(--text-muted);">上传尾帧</span>
@@ -170,7 +170,7 @@
                 <h3 style="margin:0; font-size: 1.1rem; color: #fff;">
                     <i class="ph ph-clock-counter-clockwise" style="margin-right:0.3rem;"></i> 历史任务
                 </h3>
-                <div style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;" onclick="clearHistory()">
+                <div id="clearHistoryBtn" style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
                     <i class="ph ph-trash"></i> 清空记录
                 </div>
             </div>
@@ -184,12 +184,12 @@
     <!-- Modal for Video Preview -->
     <div id="videoModal" class="modal hidden">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeVideoModal()">&times;</span>
+            <span class="close-btn" id="closeVideoModalBtn">&times;</span>
             <video id="modalVideo" controls autoplay playsinline loop></video>
         </div>
     </div>
 
-    <script src="config.local.js"></script>
+    <script src="/runtime-config.js"></script>
     <script src="seedance_api.js"></script>
     <script src="kling_api.js"></script>
     <script src="minimax_h3_api.js"></script>

@@ -5,3 +5,8 @@ config.local.js
 .DS_Store
 *.log
 node_modules/
+.worktrees/
+.wrangler/
+.dev.vars*
+worker-configuration.d.ts.tmp
+worker-media-configuration.d.ts.tmp
