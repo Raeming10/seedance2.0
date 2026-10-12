@@ -1,7 +1,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { timingSafeEqual } = require('node:crypto');
+const { timingSafeEqual, createHash } = require('node:crypto');
 const { ROOT, loadEnv, redact } = require('./lib/config');
 const { MODELS, fail } = require('./lib/catalog');
 const { MediaStore, MIME } = require('./lib/media');
@@ -127,6 +127,9 @@ function createStudio({ dataDir = path.join(ROOT, '.studio'), providers, ffmpeg 
       }
       if (req.method === 'GET' && pathname === '/api/health')
         return json(res, 200, {
+          service: 'seedance-studio',
+          instanceId: createHash('sha256').update(path.resolve(dataDir)).digest('hex').slice(0, 16),
+          runtimeId: process.env.STUDIO_RUNTIME_ID || null,
           fal: Boolean(process.env.FAL_KEY),
           google: Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY),
           ffmpeg: engine.ffmpeg,

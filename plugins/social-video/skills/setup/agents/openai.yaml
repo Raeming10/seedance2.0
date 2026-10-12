@@ -1,0 +1,4 @@
+interface:
+  display_name: '配置视频工具'
+  short_description: '首次配置 Social Video，检查本地密钥、依赖与服务连接'
+  default_prompt: '请使用 $setup 配置 Social Video，让我可以直接用对话制作视频。'

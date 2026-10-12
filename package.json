@@ -8,8 +8,9 @@
     "test": "node --test test/*.test.js",
     "mcp": "node mcp.js",
     "studio": "node cli.js",
-    "format": "prettier --write app.js server.js cli.js mcp.js lib/*.js test/*.js index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml",
-    "format:check": "prettier --check app.js server.js cli.js mcp.js lib/*.js test/*.js index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml"
+    "plugin:build": "node scripts/build-plugin.js",
+    "format": "prettier --write app.js server.js cli.js mcp.js lib/*.js scripts/*.js test/*.js \"plugins/**/*.{js,json,md,yaml}\" plugins/social-video/.codex-plugin/plugin.json index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml",
+    "format:check": "prettier --check app.js server.js cli.js mcp.js lib/*.js scripts/*.js test/*.js \"plugins/**/*.{js,json,md,yaml}\" plugins/social-video/.codex-plugin/plugin.json index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml"
   },
   "repository": {
     "type": "git",
