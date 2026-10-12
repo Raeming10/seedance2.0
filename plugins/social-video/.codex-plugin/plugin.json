@@ -1,7 +1,7 @@
 {
   "name": "social-video",
-  "version": "0.2.0",
-  "description": "在 Codex 中描述剧情，自动设计视觉开场与分镜，生成素材、剪辑并审片交付。",
+  "version": "0.3.0",
+  "description": "面向 Prelulu 社媒运营：先写完整剧本，再编译模型提示词、生成镜头并剪辑审片。",
   "author": {
     "name": "Raeming10"
   },
@@ -9,14 +9,14 @@
   "repository": "https://github.com/Raeming10/seedance2.0",
   "interface": {
     "displayName": "Social Video · 社媒视频制作",
-    "shortDescription": "用对话导演短片：视觉 hook、镜头设计、素材生成、剪辑与审片。",
-    "longDescription": "包含首次配置和视频创作两个 skill。Codex 根据剧情设计视觉 hook、有叙事目的的镜头和剪辑节奏，读取模型指南，使用 fal Flare Medium、Seedance 2.0、MiniMax H3 及 Google 官方 Veo 3.1 生成素材，再抽帧审片、截取有效片段并安排声音衔接。无需手动导入 JSON 或打开网页。首次配置 fal 与 Google API Key，生成按供应商价格计费。",
+    "shortDescription": "Prelulu 品牌背景、完整剧本、模型提示词与可检查的制作流程。",
+    "longDescription": "包含首次配置、视频创作和视频提示词三个 skill。默认载入 Prelulu 的受众与品牌信息，先按目标时长构思完整剧情，再安排镜头和模型调用；根据官方指南区分人物参考、首帧、首尾帧和多模态参考。支持 fal Flare Medium、Seedance 2.0、MiniMax H3 与 Google 官方 Veo 3.1。预检剧本时长、素材覆盖和费用，生成后抽帧、剪辑并核对实际表演。无需手动导入 JSON；API Key 保存在本地，生成按供应商价格计费。",
     "developerName": "Raeming10",
     "category": "Productivity",
     "capabilities": [],
     "defaultPrompt": [
       "帮我配置 Social Video 视频制作工具。",
-      "使用 Social Video 制作一支竖屏社媒短片，先和我讨论剧情。",
+      "为 Prelulu 制作一支面向北美受众的 20 秒竖屏恋爱短剧，先根据剧情规划镜头。",
       "使用 Social Video 修改已有视频的一个镜头，保留其他素材。"
     ]
   }

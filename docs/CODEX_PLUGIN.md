@@ -1,6 +1,6 @@
 # Codex 视频制作插件
 
-Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插件是把这些内容组织起来供用户安装的包。本项目插件名为 `social-video`，包含两个 skill：`setup`（配置视频工具）和 `create-video`（制作社媒视频）。它使用 Codex 本身理解剧情，不再调用另一套文本模型。
+Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插件是把这些内容组织起来供用户安装的包。本项目插件名为 `social-video`，包含三个 skill：`setup`（配置视频工具）、`create-video`（制作社媒视频）和由创作流程自动读取的 `video-prompting`（视频模型提示词）。它使用 Codex 本身理解剧情，不再调用另一套文本模型。
 
 ## 实习生使用
 
@@ -20,6 +20,16 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 正常使用不需要 MCP 配置、不需要手动启动服务、不需要写或导入 JSON，也不需要打开网页。网页仍可用于预览。生成任务需要本机保持运行，退出浏览器不影响后台服务；电脑关机后，已提交任务可在下次启动时继续查询。
 
+## 0.3.0：Prelulu 剧本优先流程
+
+默认载入随包分发的 Prelulu 背景，不依赖维护者电脑上的其他仓库。一般社媒需求会按 Prelulu 官号创作；用户指定其他品牌时覆盖默认值。北美内容使用自然英语，按需要选择剧情短片、角色通话或产品广告形式。
+
+制作时自动串联三个阶段：完整的定时剧本 → 有作用的镜头覆盖与生成次数 → 按模型和参考模式编写的视频提示词。新增 `video-prompting` skill 会由创作 skill 读取，实习生不需要多点一次。不会把“20 秒”简单除以模型时长后再填剧情。
+
+工作流增加 `production` 计划，预检节拍时间线、镜头覆盖、素材裁切、参考意图及粗略对白节奏。它能发现结构矛盾，不能自动证明剧情好看或保证爆款。参考图关键帧先检查，再进入视频生成阶段；最后按实际动作和对白重新剪辑。完整的非付费示例见 `docs/examples/prelulu-mafia-20s.md`。
+
+修复 Google Veo 从持久化任务恢复轮询时 SDK operation 缺少转换方法的问题；轮询继续查询原任务，不重新收费提交。
+
 ## 导演与剪辑流程
 
 “制作社媒视频”自动读取导演指南。Codex 会将剧情转成可见动作、比较开场吸引点、安排有叙事目的的景别与运镜，并按题材保留合适的停顿。镜头时长由实际表演决定，生成素材不必整段使用。不会要求实习生另外调用导演技能、填分镜表或导入 JSON。
@@ -28,7 +38,7 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 已有实习生安装的插件不会因 GitHub 更新而自动变成新版。将新版完整插件包交给其 Codex，可以发送：
 
-> 请更新我已安装的 Social Video 插件，优先使用附带的完整安装包；否则获取仓库 https://github.com/Raeming10/seedance2.0 的最新 main，按 docs/CODEX_PLUGIN.md 构建并通过 plugin-creator 的更新流程重装。保留我的两个 API Key、素材和创作记录。运行配置技能切换到新运行时，等待现有任务结束后再重启服务，检查导演指南和剪辑命令。不进行付费生成，最后提醒我新建聊天使用新版。
+> 请更新我已安装的 Social Video 插件，优先使用附带的完整安装包；否则获取仓库 https://github.com/Raeming10/seedance2.0 的最新 main，按 docs/CODEX_PLUGIN.md 构建并通过 plugin-creator 的更新流程重装。保留我的两个 API Key、素材和创作记录。运行配置技能切换到新运行时，等待现有任务结束后再重启服务，检查 prelulu、directing、video-prompting 和所选模型指南，并预检 examples/prelulu-mafia-20s.json 的 productionReview。不进行付费生成，最后提醒我新建聊天使用新版。
 
 更新后可直接说：
 
@@ -82,7 +92,9 @@ node LAUNCHER doctor
 node LAUNCHER start
 node LAUNCHER restart
 node LAUNCHER models
+node LAUNCHER guide prelulu
 node LAUNCHER guide directing
+node LAUNCHER guide video-prompting
 node LAUNCHER guide seedance
 node LAUNCHER preview-workflow /absolute/story.json
 node LAUNCHER workflow /absolute/story.json --key production-v1
@@ -103,4 +115,4 @@ node LAUNCHER compose /absolute/cut.json --key edit-v1
 - [Codex skill 说明与调用方式](https://learn.chatgpt.com/docs/build-skills)
 - [官方插件打包指南](https://developers.openai.com/plugins/build/plugins)
 
-当前包选择两个可主动调用的 skill，并提供首次配置提示；没有假设安装完成就已填好密钥或获得额外系统权限。
+当前包提供三个可主动调用的 skill，并提供首次配置提示；没有假设安装完成就已填好密钥或获得额外系统权限。

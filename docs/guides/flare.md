@@ -1,6 +1,6 @@
 # GPT Image 2.5 Flare — agent prompt notes
 
-Reviewed: 2026-10-11. Parameter contract from fal; creative advice is project-authored.
+Reviewed: 2026-10-12. Parameter contract from fal; creative advice is project-authored.
 
 Provider documentation:
 
@@ -15,3 +15,11 @@ Use the generated image as `firstFrame` for a fixed opening composition, or in `
 
 Original template:
 “A handmade white ceramic cup with a thin cobalt rim on a pale oak café table. Soft morning window light, natural photographic texture, shallow depth of field. Vertical composition, cup centered in the lower half, clean space above for a later caption. No lettering, no hands, no extra cups.”
+
+## Identity is not a shot keyframe
+
+The edit endpoint receives the ordered `images` as `image_urls`. In the prompt describe the role of each supplied image in ordinary language: character identity, wardrobe, prop or setting. These are editing inputs, not video token bindings. Make one usable composition per output rather than a multi-panel sheet when it will become a video first frame.
+
+Original edit example: “Use the adult man in image 1 for face, hair, black jacket and silver watch. Reframe to a first-person seated eye-level medium shot across the same walnut table, the man on the far side with his right hand beside a single ring. Preserve warm light from the left and blue window light behind him. The viewer's face, shoulder and back are outside the image. Photorealistic vertical film still, no lettering or UI.” Inspect identity, eyeline, hand anatomy, ring count and geometry before attaching this output as a video `firstFrame`.
+
+A new shot needs a suitable opening state, not merely a new crop. Use the shared video-prompting guide after keyframe design to specify the action that follows.

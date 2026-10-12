@@ -1,6 +1,6 @@
 # Seedance 2.0 — agent prompt notes
 
-Reviewed: 2026-10-11. This is a project summary and workflow advice, not a verbatim official manual.
+Reviewed: 2026-10-12. This is a project summary and workflow advice, not a verbatim official manual.
 
 Sources:
 
@@ -16,3 +16,15 @@ In this app: 4–15 seconds; 720p/1080p; up to 9 images, 3 videos and 3 audio re
 
 Original template:
 “@Image1 defines the ceramic cup, including its blue rim. Vertical close-up at a quiet café window, soft morning light. [0–2s] Steam rises from the cup. [2–5s] One hand turns it slowly toward the lens; the camera holds steady. Gentle café ambience. End with the cup centered and space above it for a caption.”
+
+## Mode choice
+
+| Mode        | Studio → fal                                                | Reference behavior                                                                                         |
+| ----------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `reference` | `images/videos/audios` → `image_urls/video_urls/audio_urls` | Bind attached references with `@Image1`, `@Video1`, `@Audio1`. Subject references allow a new composition. |
+| `image`     | `firstFrame` → `image_url`                                  | Opening frame; write the action that follows it.                                                           |
+| `frames`    | `firstFrame/lastFrame` → `image_url/end_image_url`          | Endpoint compositions; describe the connecting movement.                                                   |
+
+Project advice: for an exact POV or insert, derive a Flare shot keyframe from the identity asset and use image mode. Do not mix reference arrays and endpoint frames. `@step:hero` resolves a Studio dependency in input fields; it must not replace `@Image1` inside a prompt. If motion comes from `@Video1` but appearance comes from `@Image1`, say so explicitly. A still image contains no voice sample.
+
+Original first-frame prompt: “Animate the supplied opening frame. The gloved hand turns the brass key one quarter turn; the latch releases and the door opens just enough to reveal warm light. Fixed close-up. A dry click, then a faint hinge creak. No dialogue. End with the door partly open.”

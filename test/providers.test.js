@@ -3,6 +3,55 @@ const assert = require('node:assert/strict');
 const { Providers } = require('../lib/providers');
 const { normalize } = require('../lib/catalog');
 const { allowedDownload } = require('../lib/media');
+const http = require('node:http');
+const { once } = require('node:events');
+const { GoogleGenAI } = require('@google/genai');
+
+test('persisted Google receipt polls through the real SDK response converter without resubmitting', async (t) => {
+  const name = 'models/veo-3.1-generate-preview/operations/persisted';
+  const calls = [];
+  const responses = [
+    { name, done: false },
+    {
+      name,
+      done: true,
+      response: {
+        generateVideoResponse: {
+          generatedSamples: [
+            { video: { uri: 'https://generativelanguage.googleapis.com/video.mp4' } },
+          ],
+        },
+      },
+    },
+    { name, done: true, error: { code: 400, message: 'Fixture rejected' } },
+  ];
+  const server = http.createServer((req, res) => {
+    calls.push({ method: req.method, url: req.url });
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(responses.shift()));
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const sdk = new GoogleGenAI({
+    apiKey: 'local-fixture',
+    httpOptions: {
+      baseUrl: `http://127.0.0.1:${server.address().port}`,
+      retryOptions: { attempts: 1 },
+    },
+  });
+  const provider = new Providers({});
+  provider.google = () => sdk;
+  const receipt = JSON.parse(JSON.stringify({ provider: 'google', name }));
+  assert.equal((await provider.poll(receipt)).status, 'running');
+  assert.deepEqual(await provider.poll(receipt), {
+    status: 'completed',
+    urls: ['https://generativelanguage.googleapis.com/video.mp4'],
+  });
+  assert.match((await provider.poll(receipt)).error, /Fixture rejected/);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every((c) => c.method === 'GET' && c.url.endsWith('/' + name)));
+});
 test('official Google adapter sends references, duration and native 1080p through SDK', async () => {
   const p = new Providers({ image: async (v) => ({ imageBytes: v, mimeType: 'image/png' }) });
   const prepared = await p.prepare(normalize({ model: 'veo', prompt: 'Cup', images: ['image-a'] }));
@@ -26,6 +75,7 @@ test('Google polling retains operation name and handles safety-filtered outputs'
   p.google = () => ({
     operations: {
       async getVideosOperation({ operation }) {
+        assert.equal(typeof operation._fromAPIResponse, 'function');
         name = operation.name;
         return { done: true, response: { raiMediaFilteredReasons: ['No eligible output'] } };
       },

@@ -31,7 +31,8 @@ async function body(req) {
   }
 }
 function guide(id) {
-  if (id !== 'directing' && !MODELS.some((m) => m.id === id)) fail('Unknown model guide.');
+  if (!['directing', 'prelulu', 'video-prompting'].includes(id) && !MODELS.some((m) => m.id === id))
+    fail('Unknown model guide.');
   return fs.readFileSync(path.join(ROOT, 'docs', 'guides', id + '.md'), 'utf8');
 }
 function secureEqual(a, b) {

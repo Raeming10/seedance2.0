@@ -129,6 +129,14 @@ test(
     fs.writeFileSync(path.join(x.cwd, 'story.json'), JSON.stringify(manifest));
     const preview = await x.run('preview-workflow', 'story.json');
     assert.ok(preview);
+    const film = await x.run(
+      'preview-workflow',
+      path.join(x.runtime, 'examples', 'prelulu-mafia-20s.json'),
+    );
+    assert.equal(film.productionReview.plannedDuration, 20);
+    assert.equal(film.productionReview.generatedVideoSeconds, 40);
+    assert.equal(film.estimate.knownUsd, 16);
+    assert.equal(film.estimate.unpricedSteps.length, 6);
     assert.deepEqual((await x.run('jobs')).jobs, []);
     await x.run('setup');
     assert.equal(fs.readFileSync(x.envFile, 'utf8'), before);

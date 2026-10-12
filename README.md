@@ -43,13 +43,21 @@ npm start
 - 只有 fal Key 时即可使用 Flare、Seedance、MiniMax。Google 是独立的官方 Gemini API。
 - 所有密钥只在服务端读取，网页不会获取密钥；不要提交 `.env`。
 
+## Prelulu 剧本优先制作
+
+插件默认用于 Prelulu 社媒官号：品牌、受众、情感定位和广告流程经验已提炼到随包指南，不需要实习生反复说明平台，也不依赖其他项目路径。用户明确指定其他品牌或无品牌制作时覆盖默认。
+
+先完成撑得起目标时长的剧本，再规划镜头和生成次数，最后由视频提示词 skill 按模型的参考模式编写请求。`production` 预检能发现时间线、素材覆盖和模式意图的问题；戏剧张力与真实成片仍需要 Codex 审阅，不能用字段齐全代替创作判断。参考 [20 秒 mafia 完整示例](docs/examples/prelulu-mafia-20s.md) 和 [API 计划格式](docs/API.md)。示例只用于预检，测试不会生成收费素材。
+
 ## AI 如何执行制作
 
 以下是供 agent 和开发者参考的命令，不需要实习生逐条操作。Codex 在有项目访问和命令执行权限时，可以直接调用 `node cli.js`，无需点网页。
 
 ```sh
 node cli.js models
+node cli.js guide prelulu
 node cli.js guide directing
+node cli.js guide video-prompting
 node cli.js guide seedance
 node cli.js preview-workflow examples/social-video.json
 # 下一条会实际生成，并产生供应商费用
@@ -92,7 +100,7 @@ Codex 在本地项目中使用 CLI 即可。若要通过 MCP 工具调用，先�
 }
 ```
 
-工具包括模型发现、导演和模型指南、素材上传、费用预览、生成、任务查询、抽帧审片、剪辑预览与合成。`storyboard` MCP prompt 会把导演、图像和所选视频模型的指南一起提供给 agent。各客户端的配置文件格式可能不同，核心设置都是 `node` + `mcp.js` 的绝对路径。
+工具包括模型发现、导演和模型指南、素材上传、费用预览、生成、任务查询、抽帧审片、剪辑预览与合成。`storyboard` MCP prompt 会把Prelulu 品牌、导演、视频提示词、图像和所选视频模型指南一起提供给 agent。各客户端的配置文件格式可能不同，核心设置都是 `node` + `mcp.js` 的绝对路径。
 
 指南放在 `docs/guides/`，包含核对日期、官方来源、适用模式和本项目建议。网页、MCP、CLI 共用这些文件。指南不是偷偷追加到视频提示词的冗长文本：agent 应先阅读，再按模型习惯写提示词。无法强制任何第三方 agent 阅读文档，`AGENTS.md`、工具描述和 MCP prompt 会明确引导它执行这一步。
 

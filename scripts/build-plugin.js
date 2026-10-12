@@ -20,13 +20,18 @@ const RUNTIME_FILES = [
   'lib/media.js',
   'lib/timeline.js',
   'lib/providers.js',
+  'lib/production.js',
   'docs/API.md',
   'docs/guides/directing.md',
+  'docs/guides/prelulu.md',
+  'docs/guides/video-prompting.md',
+  'docs/examples/prelulu-mafia-20s.md',
   'docs/guides/flare.md',
   'docs/guides/seedance.md',
   'docs/guides/minimax.md',
   'docs/guides/veo.md',
   'examples/social-video.json',
+  'examples/prelulu-mafia-20s.json',
 ];
 const PLUGIN_FILES = [
   '.codex-plugin/plugin.json',
@@ -35,6 +40,8 @@ const PLUGIN_FILES = [
   'skills/setup/agents/openai.yaml',
   'skills/create-video/SKILL.md',
   'skills/create-video/agents/openai.yaml',
+  'skills/video-prompting/SKILL.md',
+  'skills/video-prompting/agents/openai.yaml',
 ];
 function build(destination = path.join(ROOT, '.studio', 'dist', 'social-video'), root = ROOT) {
   const target = path.resolve(destination);

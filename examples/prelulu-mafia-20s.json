@@ -1,0 +1,236 @@
+{
+  "name": "Prelulu — Your Move (planning example; preview only)",
+  "production": {
+    "brand": "Prelulu",
+    "targetDuration": 20,
+    "story": {
+      "setup": "An adult viewer returns the ring on the eve of a mafia-family wedding.",
+      "conflict": "Both families expect the alliance to proceed; the lead is under pressure to insist.",
+      "turn": "He returns the choice and rejects treating the viewer as a hostage.",
+      "payoff": "He opens the exit and steps aside. The viewer owns the next move."
+    },
+    "beats": [
+      {
+        "id": "hook",
+        "start": 0,
+        "end": 2,
+        "action": "A single engagement ring drops onto the table as the viewer refuses the wedding.",
+        "change": "The expected alliance becomes an explicit refusal.",
+        "dialogue": [
+          {
+            "speaker": "adult viewer, offscreen",
+            "text": "I'm not marrying you."
+          }
+        ]
+      },
+      {
+        "id": "pressure",
+        "start": 2,
+        "end": 7,
+        "action": "The lead looks from the ring to the door as an unseen aide reminds him that both families are waiting.",
+        "change": "Refusing her request now has a social cost, and his decision is unresolved.",
+        "dialogue": [
+          {
+            "speaker": "unseen adult aide beyond the door",
+            "text": "The families are waiting."
+          }
+        ]
+      },
+      {
+        "id": "choice",
+        "start": 7,
+        "end": 10,
+        "action": "He returns the ring to the viewer instead of putting it on their hand.",
+        "change": "He gives the choice back; the meaning of his authority changes.",
+        "dialogue": []
+      },
+      {
+        "id": "turn",
+        "start": 10,
+        "end": 16,
+        "action": "His eyes return to the viewer; he calmly rejects the family pressure.",
+        "change": "The feared captor chooses to respect the refusal, risking the alliance.",
+        "dialogue": [
+          {
+            "speaker": "adult male lead",
+            "text": "Then let them wait. I asked for a wife, not a hostage."
+          }
+        ]
+      },
+      {
+        "id": "payoff",
+        "start": 16,
+        "end": 20,
+        "action": "He stands beside the door, opens it and steps aside, leaving the route to the viewer.",
+        "change": "The promise becomes an observable choice; the viewer decides the next chapter.",
+        "dialogue": [
+          {
+            "speaker": "adult male lead",
+            "text": "Your move."
+          }
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "step": "hook",
+        "beatIds": ["hook"],
+        "start": 0.5,
+        "end": 2.5,
+        "framing": "insert",
+        "viewpoint": "first-person",
+        "referenceIntent": "composition"
+      },
+      {
+        "step": "pressure",
+        "beatIds": ["pressure"],
+        "start": 0.5,
+        "end": 5.5,
+        "framing": "medium",
+        "viewpoint": "first-person",
+        "referenceIntent": "composition"
+      },
+      {
+        "step": "choice",
+        "beatIds": ["choice"],
+        "start": 0.5,
+        "end": 3.5,
+        "framing": "insert",
+        "viewpoint": "first-person",
+        "referenceIntent": "composition"
+      },
+      {
+        "step": "turn",
+        "beatIds": ["turn"],
+        "start": 0.5,
+        "end": 6.5,
+        "framing": "close-up",
+        "viewpoint": "first-person",
+        "referenceIntent": "composition"
+      },
+      {
+        "step": "payoff",
+        "beatIds": ["payoff"],
+        "start": 0.5,
+        "end": 4.5,
+        "framing": "medium-wide",
+        "viewpoint": "first-person",
+        "referenceIntent": "composition"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "identity",
+      "request": {
+        "model": "flare",
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. One adult man, 34, short dark wavy hair, a small scar through his left eyebrow, black open-collar suit and plain silver watch on his left wrist. Medium portrait including his hands at the walnut desk; restrained attention, not smiling. "
+      }
+    },
+    {
+      "id": "hook_frame",
+      "request": {
+        "model": "flare",
+        "mode": "edit",
+        "images": ["@step:identity"],
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. Use image 1 for the man's identity, wardrobe and office continuity; recompose the camera and prop state as follows. Tight first-person downward insert: one adult viewer hand holds a single engagement ring just above the near edge of the desk; the man's black sleeve is at the far edge. No face or viewer shoulder is visible."
+      }
+    },
+    {
+      "id": "pressure_frame",
+      "request": {
+        "model": "flare",
+        "mode": "edit",
+        "images": ["@step:identity"],
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. Use image 1 for the man's identity, wardrobe and office continuity; recompose the camera and prop state as follows. First-person seated eye-level medium shot across the desk. The same man is seated on the far side. The single ring is motionless on the near side of the desk; his hands are not touching it. A door stands slightly ajar on camera right; nobody else is visible."
+      }
+    },
+    {
+      "id": "choice_frame",
+      "request": {
+        "model": "flare",
+        "mode": "edit",
+        "images": ["@step:identity"],
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. Use image 1 for the man's identity, wardrobe and office continuity; recompose the camera and prop state as follows. Tight first-person insert of the same ring on the walnut desk, the man's right index finger beside it on the far side. The viewer's hands and all faces are outside frame. His silver watch belongs on his left wrist, outside this crop."
+      }
+    },
+    {
+      "id": "turn_frame",
+      "request": {
+        "model": "flare",
+        "mode": "edit",
+        "images": ["@step:identity"],
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. Use image 1 for the man's identity, wardrobe and office continuity; recompose the camera and prop state as follows. First-person eye-level close-up of the same man beyond the desk, his gaze toward the viewer at lens height. Match the scar, hair, jacket and left-side amber light; his mouth and eyes unobscured. No viewer face, shoulder or back."
+      }
+    },
+    {
+      "id": "payoff_frame",
+      "request": {
+        "model": "flare",
+        "mode": "edit",
+        "images": ["@step:identity"],
+        "prompt": "Photorealistic vertical 9:16 film still, one composition, no text or UI. Warm amber light from camera left, blue evening window light behind, a walnut desk and a door to camera right. Use image 1 for the man's identity, wardrobe and office continuity; recompose the camera and prop state as follows. First-person seated-height medium-wide composition toward the same office door on camera right. The same man now stands beside the slightly ajar door with his right hand near the handle. He does not block the doorway. The desk corner remains at bottom left; the viewer is outside frame. Unoccupied hallway beyond."
+      }
+    },
+    {
+      "id": "hook",
+      "request": {
+        "model": "veo",
+        "mode": "image",
+        "firstFrame": "@step:hook_frame",
+        "duration": 8,
+        "resolution": "1080p",
+        "aspectRatio": "9:16",
+        "prompt": "Animate the supplied opening frame. Fixed tight first-person insert. At 0.5 seconds the adult offscreen viewer says in natural North American English, firm and quiet, \"I'm not marrying you.\" As the line is spoken, their hand releases the ring onto the walnut surface; it lands and settles by 2 seconds. One clear metal tap, low room tone. No other voice or music. Keep the ring on the desk and preserve the viewpoint. Leave the completed action unchanged after 2.5 seconds."
+      }
+    },
+    {
+      "id": "pressure",
+      "request": {
+        "model": "veo",
+        "mode": "image",
+        "firstFrame": "@step:pressure_frame",
+        "duration": 8,
+        "resolution": "1080p",
+        "aspectRatio": "9:16",
+        "prompt": "Animate the supplied opening frame. Eye-level first-person medium shot from the supplied frame. At 0.5 seconds an unseen adult aide outside the door says, clipped and businesslike, \"The families are waiting.\" The man stays silent, looks down at the ring, then turns his eyes toward the door. His jaw tightens briefly before he looks back toward the viewer by 5 seconds. A restrained slow push emphasizes his decision, without changing sides of the desk. Faint hallway sound and room tone, no music. No reverse shot, no viewer body, no lip movement from the man during the aide's line."
+      }
+    },
+    {
+      "id": "choice",
+      "request": {
+        "model": "veo",
+        "mode": "image",
+        "firstFrame": "@step:choice_frame",
+        "duration": 8,
+        "resolution": "1080p",
+        "aspectRatio": "9:16",
+        "prompt": "Animate the supplied opening frame. Locked first-person insert. From 0.5 to 2.5 seconds the man slides the single ring toward the near edge with his right index finger, then withdraws his hand. The ring ends within the viewer's reach and never leaves the table. A soft metal scrape on wood; quiet room tone. No dialogue or music. Keep the geometry, sleeve and ring consistent. Hold the completed state after 3 seconds; no cut to a face."
+      }
+    },
+    {
+      "id": "turn",
+      "request": {
+        "model": "veo",
+        "mode": "image",
+        "firstFrame": "@step:turn_frame",
+        "duration": 8,
+        "resolution": "1080p",
+        "aspectRatio": "9:16",
+        "prompt": "Animate the supplied opening frame. First-person eye-level close-up. The same adult man meets the lens with steady attention. Starting at 0.5 seconds he says in a low, restrained North American baritone, conversational rather than theatrical: \"Then let them wait. I asked for a wife, not a hostage.\" A brief pause after \"wait\"; finish by 6 seconds, allowing a small release of tension at his eyes. One gentle push inward, no angle change. Low room tone, no other voice or music. Do not smile broadly or add speech. Maintain the face and lighting from the first frame."
+      }
+    },
+    {
+      "id": "payoff",
+      "request": {
+        "model": "veo",
+        "mode": "image",
+        "firstFrame": "@step:payoff_frame",
+        "duration": 8,
+        "resolution": "1080p",
+        "aspectRatio": "9:16",
+        "prompt": "Animate the supplied opening frame. Continue from the first-person opening frame. Between 0.5 and 2 seconds the man opens the door and steps sideways, fully clearing the doorway. He looks back to the viewer and says at 2.2 seconds in the same low, restrained North American baritone, \"Your move.\" Finish before 3.5 seconds. The camera remains at the viewer's seated eye level; he waits beside, not inside, the open route. Soft latch click and room tone, no music. No reverse angle, no viewer body, no other people. Leave a clean lower-left area without obscuring his face or the doorway; no generated lettering."
+      }
+    }
+  ]
+}
