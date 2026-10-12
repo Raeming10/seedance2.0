@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+node_modules
+.studio
+.outputs
+.uploads
+.worktrees
+config.local.js
+*.log
+test
