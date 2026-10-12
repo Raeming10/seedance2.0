@@ -8,7 +8,7 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 首次发送：
 
-> 使用 Social Video 的配置技能，帮我准备视频制作环境。检查依赖、启动服务，打开本地配置文件让我填写 fal Key；先不要生成付费素材。
+> 使用 Social Video 的配置技能，帮我准备视频制作环境。检查依赖、启动服务，打开本地配置文件让我补齐 fal Key 和 Google 官方 Veo Key；先不要生成付费素材。
 
 以后发送：
 
@@ -19,6 +19,20 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 首次需要 Node.js 22+ 和 npm；合成需要 FFmpeg/ffprobe。配置 skill 会协助检查和安装，但不能越过本机权限。密钥由用户在本地文件中填写；安装插件不附送模型额度，也不会自动验证供应商账户权限。
 
 正常使用不需要 MCP 配置、不需要手动启动服务、不需要写或导入 JSON，也不需要打开网页。网页仍可用于预览。生成任务需要本机保持运行，退出浏览器不影响后台服务；电脑关机后，已提交任务可在下次启动时继续查询。
+
+## 导演与剪辑流程
+
+“制作社媒视频”自动读取导演指南。Codex 会将剧情转成可见动作、比较开场吸引点、安排有叙事目的的景别与运镜，并按题材保留合适的停顿。镜头时长由实际表演决定，生成素材不必整段使用。不会要求实习生另外调用导演技能、填分镜表或导入 JSON。
+
+制作记录保留镜头目的、连续性、素材 ID 和剪辑入点／出点，便于后续只改某个镜头。`inspect` 提供预览帧，Codex 需要实际查看，并在具备工具时播放、听取成片；抽帧不能证明动态和声音质量。`preview-composition` 验证实际素材范围和时间线，`compose` 支持截取、原声音量和独立音轨的位置／淡入淡出。
+
+已有实习生安装的插件不会因 GitHub 更新而自动变成新版。将新版完整插件包交给其 Codex，可以发送：
+
+> 请更新我已安装的 Social Video 插件，优先使用附带的完整安装包；否则获取仓库 https://github.com/Raeming10/seedance2.0 的最新 main，按 docs/CODEX_PLUGIN.md 构建并通过 plugin-creator 的更新流程重装。保留我的两个 API Key、素材和创作记录。运行配置技能切换到新运行时，等待现有任务结束后再重启服务，检查导演指南和剪辑命令。不进行付费生成，最后提醒我新建聊天使用新版。
+
+更新后可直接说：
+
+> 使用 Social Video 实现这段剧情：[剧情]。请用画面表现动作和情绪，设计前三秒的视觉吸引点，根据叙事安排景别、运镜和声音衔接；生成后挑选有效片段并审片交付。预算：[预算]，时长：[时长]。
 
 ## 安装包与本地安装
 
@@ -68,10 +82,14 @@ node LAUNCHER doctor
 node LAUNCHER start
 node LAUNCHER restart
 node LAUNCHER models
+node LAUNCHER guide directing
 node LAUNCHER guide seedance
 node LAUNCHER preview-workflow /absolute/story.json
 node LAUNCHER workflow /absolute/story.json --key production-v1
 node LAUNCHER workflow-status WORKFLOW_ID
+node LAUNCHER inspect /outputs/CLIP.mp4
+node LAUNCHER preview-composition /absolute/cut.json
+node LAUNCHER compose /absolute/cut.json --key edit-v1
 ```
 
 普通生成命令先自动检查/启动服务，再转交原有 CLI。相对的素材和任务文件路径以用户当前创作目录为准。`restart` 会检查所有持久化任务并拒绝打断进行中的工作；未知端口或其他工作室的数据目录不会被自动接管。共享服务不可达时不会创建本地替代服务。

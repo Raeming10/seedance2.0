@@ -7,6 +7,7 @@ Base: `http://127.0.0.1:8000`. Shared servers require `Authorization: Bearer <ST
 - `GET /api/health`: configured providers, FFmpeg availability. These booleans report configuration, not provider authentication or network success.
 - `GET /api/models`: model IDs, modes, ratios, resolutions, duration and reference limits.
 - `GET /api/guides/{flare|seedance|minimax|veo}`: guide Markdown and source links.
+- `GET /api/guides/directing`: visual storytelling, hooks, motivated coverage and review guidance. Read before planning shots; model guides translate those choices into provider-specific prompts.
 - `GET /api/example`: the example social workflow.
 - `POST /api/preview`: validate a generation request and estimate cost; no provider call.
 - `POST /api/workflows/preview`: validate every step and dependency before generating anything.
@@ -57,17 +58,49 @@ HTTP errors return `{error}`. API validation errors are 400, token errors 401, o
 
 `GET /api/workflows/{id}` returns progress and child job IDs. `GET /api/workflows` lists recent workflows. A failure stops later generation steps. Submitted jobs and downloaded outputs survive server restarts.
 
-`compose` in a workflow names the video step IDs to concatenate. To reassemble existing shots without generating them again, use `POST /api/compose`:
+`compose` in a workflow names video step IDs, or objects `{step, start, end, volume}` for selected ranges. To edit existing shots without generating them again, use `POST /api/compose`:
 
 ```json
 {
   "name": "Revised film",
-  "clips": ["/outputs/SHOT-A.mp4", "/outputs/SHOT-B.mp4"],
+  "clips": [
+    { "url": "/outputs/SHOT-A.mp4", "start": 0.5, "end": 2.5, "volume": 0 },
+    { "url": "/outputs/SHOT-B.mp4", "start": 1, "end": 4, "volume": 0 }
+  ],
+  "audioTracks": [
+    {
+      "url": "/assets/AMBIENCE.wav",
+      "start": 0,
+      "end": 5,
+      "at": 0,
+      "volume": 0.3,
+      "fadeIn": 0.1,
+      "fadeOut": 0.3
+    },
+    { "url": "/outputs/SHOT-B.mp4", "start": 0.5, "end": 3.5, "at": 1.5, "volume": 1 }
+  ],
   "aspectRatio": "9:16",
   "resolution": "1080p"
 }
 ```
 
 It also requires `Idempotency-Key`, returns 202 and a workflow ID, and is queried through `/api/workflows/{id}`. FFmpeg runs asynchronously; no generation provider is called. The result contains one video stream and one stereo audio stream.
+
+### Timeline rules
+
+- Clip strings such as `"/outputs/SHOT-A.mp4"` remain valid and use the whole clip. Object clips select `[start, end)` in source seconds. `start` defaults to 0, omitted `end` uses the source end, and `volume` defaults to 1 (0 mutes; range 0–4). MP4s uploaded through `/api/assets` are also accepted. Reorder or repeat sources freely; at most 30 clip entries.
+- Cuts use 24fps; selected durations round to the nearest frame. Ranges smaller than half a frame, reversed ranges and ranges beyond the source are rejected. Bounds allow 0.05 seconds for container rounding. Output resolution normalizes size; it cannot recover source detail.
+- Up to 16 `audioTracks` accept local MP3/WAV or the audio stream from a local MP4/MOV. `start`/`end` select source seconds; `at` positions the sound on the assembled timeline. `fadeIn`/`fadeOut` are seconds within the selected track and default to 0. Fades must fit; the complete track must fit inside the assembled video (trim explicitly rather than silently dropping sound). Sources are limited to 600 seconds each.
+- Clip audio and independent tracks are mixed at their specified volumes with overload limiting. Mute duplicated clip audio before adding it as a separate track. The example places shot B's sound 0.5 seconds before its picture: a J-cut. An L-cut uses sound continuing into a later picture. No automatic ducking, music generation, caption rendering or visual transition effects are added.
+- Workflow `compose.audioTracks` uses the same fields. Its `url` may be `@step:ID` for a generated video with audio enabled, or an existing local media URL. Example: `"compose": {"steps": [{"step":"opening","start":0.5,"end":2.5}, "ending"], "audioTracks": []}`. Known ranges beyond a requested generation duration fail before paid submission; actual file bounds are checked after download.
+- Source generation is billed for the full generated duration even when the final cut uses only part of it. Creative notes such as shot purpose, hook candidates and intended emotion belong in a separate production note, not in strict API requests.
+
+### Preview and inspect before editing
+
+`POST /api/compose/preview` accepts the same composition, needs no idempotency key, and reads the actual source metadata without rendering or submitting provider jobs. It returns the normalized `composition`, a `timeline` with source bounds, shot positions, selected durations and audio tracks, plus `generationCostUsd: 0`. The CLI equivalent is `node cli.js preview-composition cut.json`; MCP uses `preview_composition`.
+
+`POST /api/inspect` accepts `{"url":"/outputs/SHOT-A.mp4","times":[0,0.5,1,2]}`. Times are optional: defaults sample the opening and the remainder, up to 12 frames. Explicit times allow 1–24 positions within the source duration. The result reports video metadata and `{time,url}` JPEG frames under `/outputs/`. It requires FFmpeg and performs no paid generation. CLI: `node cli.js inspect /outputs/SHOT-A.mp4 --times 0,0.5,1,2`; MCP: `inspect_video`.
+
+Open the returned frames to review composition and continuity, and use playback/listening for motion and sound. Extraction is not a visual judgment or an engagement score. Sources remain untouched; preview frames are additional local files. For a local plugin, frame basenames are in its reported `outputsDir`; shared servers use the authenticated media URLs.
 
 This server is a single-process local/trusted-team service. It has no per-user authorization or budget enforcement. Provider files are copied locally so expiring CDN links are not the only copy of a result.

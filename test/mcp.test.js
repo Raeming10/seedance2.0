@@ -35,9 +35,16 @@ test(
     await client.connect(transport);
     const tools = await client.listTools();
     assert.ok(tools.tools.some((t) => t.name === 'create_workflow'));
-    assert.equal(tools.tools.length, 12);
+    assert.ok(tools.tools.some((t) => t.name === 'preview_composition'));
+    assert.ok(tools.tools.some((t) => t.name === 'inspect_video'));
     const guide = await client.callTool({ name: 'get_prompt_guide', arguments: { model: 'veo' } });
     assert.match(guide.content[0].text, /ai.google.dev/);
+    const directing = await client.callTool({
+      name: 'get_prompt_guide',
+      arguments: { model: 'directing' },
+    });
+    assert.equal(directing.isError, undefined);
+    assert.match(directing.content[0].text, /Directing social videos/);
     const preview = await client.callTool({
       name: 'preview_generation',
       arguments: { request: { model: 'flare', prompt: 'Cup' } },

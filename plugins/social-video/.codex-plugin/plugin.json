@@ -1,7 +1,7 @@
 {
   "name": "social-video",
-  "version": "0.1.0",
-  "description": "在 Codex 中描述剧情，自动生成参考图、制作视频镜头并合成成片。",
+  "version": "0.2.0",
+  "description": "在 Codex 中描述剧情，自动设计视觉开场与分镜，生成素材、剪辑并审片交付。",
   "author": {
     "name": "Raeming10"
   },
@@ -9,8 +9,8 @@
   "repository": "https://github.com/Raeming10/seedance2.0",
   "interface": {
     "displayName": "Social Video · 社媒视频制作",
-    "shortDescription": "用对话制作视频：自动生图、生成镜头、保存素材与合成成片。",
-    "longDescription": "包含首次配置和视频创作两个 skill。使用 fal 的 Flare Medium、Seedance 2.0、MiniMax H3，以及 Google 官方 Veo 3.1。Codex 自动读取模型指南、编排分镜并调用本地工具；无需手动导入 JSON 或打开网页。首次需配置自己的 API Key，生成按供应商价格计费。",
+    "shortDescription": "用对话导演短片：视觉 hook、镜头设计、素材生成、剪辑与审片。",
+    "longDescription": "包含首次配置和视频创作两个 skill。Codex 根据剧情设计视觉 hook、有叙事目的的镜头和剪辑节奏，读取模型指南，使用 fal Flare Medium、Seedance 2.0、MiniMax H3 及 Google 官方 Veo 3.1 生成素材，再抽帧审片、截取有效片段并安排声音衔接。无需手动导入 JSON 或打开网页。首次配置 fal 与 Google API Key，生成按供应商价格计费。",
     "developerName": "Raeming10",
     "category": "Productivity",
     "capabilities": [],

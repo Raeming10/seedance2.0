@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { once } = require('node:events');
 const { createStudio } = require('../server');
+const { runFFmpeg, ffmpegAvailable } = require('../lib/media');
 async function setup(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-http-'));
   const studio = createStudio({
@@ -112,3 +113,62 @@ test('shared token protects API/media and can create an HttpOnly browser session
   const cookie = session.headers.get('set-cookie').split(';')[0];
   assert.equal((await s.fetch('/api/models', { headers: { Cookie: cookie } })).status, 200);
 });
+
+test(
+  'HTTP exposes directing, local inspection and timeline preview without creating generation jobs',
+  { skip: !ffmpegAvailable(), timeout: 15000 },
+  async (t) => {
+    const s = await setup(t);
+    await runFFmpeg([
+      '-f',
+      'lavfi',
+      '-i',
+      'color=c=blue:s=160x90:r=24',
+      '-t',
+      '1',
+      '-c:v',
+      'libx264',
+      path.join(s.root, 'outputs', 'clip.mp4'),
+    ]);
+    const post = (route, value) =>
+      s.fetch(route, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(value),
+      });
+    assert.equal((await s.fetch('/api/guides/directing')).status, 200);
+    const composition = {
+      name: 'Cut',
+      clips: [{ url: '/outputs/clip.mp4', start: 0.25, end: 0.75 }],
+    };
+    const preview = await post('/api/compose/preview', composition);
+    assert.equal(preview.status, 200);
+    assert.equal((await preview.json()).timeline.duration, 0.5);
+    assert.equal(
+      (
+        await post('/api/compose/preview', {
+          ...composition,
+          clips: [{ url: '/outputs/clip.mp4', end: 2 }],
+        })
+      ).status,
+      400,
+    );
+    const inspection = await post('/api/inspect', { url: '/outputs/clip.mp4', times: [0.25] });
+    assert.equal(inspection.status, 200);
+    const frame = (await inspection.json()).frames[0];
+    const image = await s.fetch(frame.url);
+    assert.equal(image.status, 200);
+    assert.equal(image.headers.get('Content-Type'), 'image/jpeg');
+    assert.equal(
+      (await post('/api/inspect', { url: '/outputs/clip.mp4', times: null })).status,
+      400,
+    );
+    assert.equal(
+      (await post('/api/inspect', { url: '/outputs/clip.mp4', times: [2] })).status,
+      400,
+    );
+    assert.equal((await post('/api/inspect', { url: '/etc/passwd' })).status, 400);
+    assert.equal(s.engine.jobs.size, 0);
+    assert.equal(s.engine.workflows.size, 0);
+  },
+);

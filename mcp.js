@@ -29,6 +29,19 @@ function tool(name, description, inputSchema, fn, readOnly = false) {
   );
 }
 tool(
+  'preview_composition',
+  'Validate source in/out points, audio placement and assembled duration without generating or rendering media.',
+  { composition: compositionSchema },
+  ({ composition }) => api('/api/compose/preview', composition),
+  true,
+);
+tool(
+  'inspect_video',
+  'Extract timestamped frames from a local Studio MP4/MOV for the agent to open and review. Does not judge motion or audio, and never generates paid media.',
+  { url: z.string(), times: z.array(z.number().min(0)).min(1).max(24).optional() },
+  (args) => api('/api/inspect', args),
+);
+tool(
   'list_models',
   'Discover supported modes, resolutions, ratios and reference limits before planning shots.',
   {},
@@ -38,7 +51,7 @@ tool(
 tool(
   'get_prompt_guide',
   'Read this BEFORE writing prompts for the selected model. Includes official source links and mode-specific conventions.',
-  { model: z.enum(['flare', 'seedance', 'minimax', 'veo']) },
+  { model: z.enum(['directing', 'flare', 'seedance', 'minimax', 'veo']) },
   ({ model }) => api('/api/guides/' + model),
   true,
 );
@@ -96,7 +109,7 @@ tool(
 );
 tool(
   'compose_clips',
-  'Join existing local MP4 outputs in order without paying to generate them again. Use this after revising an individual shot. Returns a workflow ID; poll get_workflow.',
+  'Edit existing local MP4 clips using source in/out points and independent audio tracks, without generating them again. Preview the composition first. Returns a workflow ID; poll get_workflow.',
   { composition: compositionSchema, idempotencyKey: z.string().min(1) },
   ({ composition, idempotencyKey }) => api('/api/compose', composition, idempotencyKey),
 );
@@ -114,9 +127,10 @@ server.registerPrompt(
     argsSchema: { idea: z.string(), model: z.enum(['seedance', 'minimax', 'veo']).optional() },
   },
   async ({ idea, model = 'seedance' }) => {
-    const [video, image] = await Promise.all([
+    const [video, image, directing] = await Promise.all([
       api('/api/guides/' + model),
       api('/api/guides/flare'),
+      api('/api/guides/directing'),
     ]);
     return {
       messages: [
@@ -124,7 +138,7 @@ server.registerPrompt(
           role: 'user',
           content: {
             type: 'text',
-            text: `Create a social-video storyboard from this idea: ${idea}\nUse 9:16 unless requested otherwise. Preserve the creative intent. Plan a hook, action and payoff, generate a reusable Flare reference, and keep identity consistent across shots. Use @step:ID references in an ordered workflow. Read the following model guides, call preview_workflow, then execute only within the user's generation authorization. Inspect the final outputs before claiming visual quality.\n\n${image.content}\n\n${video.content}`,
+            text: `Create a social-video storyboard from this idea: ${idea}\nUse 9:16 unless requested otherwise. Preserve the creative intent. Follow the directing guide to plan a visual hook and motivated coverage before adapting prompts to the chosen models. Keep identity references separate from shot compositions. Use @step:ID references in an ordered workflow. Inspect generated clips, choose source in/out points, preview_composition and compose_clips within the user's existing authorization. Do not ask the user to import JSON.\n\n${directing.content}\n\n${image.content}\n\n${video.content}`,
           },
         },
       ],
