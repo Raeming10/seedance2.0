@@ -1,0 +1,4 @@
+interface:
+  display_name: '制作社媒视频'
+  short_description: '把剧情变成参考图、视频镜头与成片，并支持只修改指定镜头'
+  default_prompt: '请使用 $create-video 制作一支竖屏社媒短片，先根据我的剧情设计画面。'
