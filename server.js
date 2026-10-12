@@ -31,7 +31,7 @@ async function body(req) {
   }
 }
 function guide(id) {
-  if (!MODELS.some((m) => m.id === id)) fail('Unknown model guide.');
+  if (id !== 'directing' && !MODELS.some((m) => m.id === id)) fail('Unknown model guide.');
   return fs.readFileSync(path.join(ROOT, 'docs', 'guides', id + '.md'), 'utf8');
 }
 function secureEqual(a, b) {
@@ -161,6 +161,19 @@ function createStudio({ dataDir = path.join(ROOT, '.studio'), providers, ffmpeg 
         return json(res, 200, engine.preflight(await body(req)));
       if (req.method === 'POST' && pathname === '/api/workflows/preview')
         return json(res, 200, engine.previewWorkflow(await body(req)));
+      if (req.method === 'POST' && pathname === '/api/compose/preview')
+        return json(res, 200, await engine.previewComposition(await body(req)));
+      if (req.method === 'POST' && pathname === '/api/inspect') {
+        const input = await body(req);
+        if (
+          !input ||
+          typeof input.url !== 'string' ||
+          Object.keys(input).some((key) => !['url', 'times'].includes(key))
+        )
+          fail('Inspect accepts url and optional times only.');
+        if (!engine.ffmpeg) fail('Inspect requires FFmpeg.');
+        return json(res, 200, await media.inspect(input.url, input.times));
+      }
       if (
         req.method === 'POST' &&
         ['/api/jobs', '/api/workflows', '/api/compose'].includes(pathname)

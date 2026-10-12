@@ -8,10 +8,12 @@
 
 插件带完整运行时代码，密钥和素材保存在独立的本地目录，更新插件不覆盖它们。无需每位实习生管理源代码仓库或 MCP。维护者可用 `npm run plugin:build` 构建，再通过 Codex 个人插件安装/分享流程分发。安装与使用见 [Codex 插件说明](docs/CODEX_PLUGIN.md)。下面保留直接使用源码项目的方式。
 
+创作技能内置[导演指南](docs/guides/directing.md)：把剧情转成可见动作，设计前三秒的吸引点，根据叙事目的安排景别、反应和运镜，再检查成片。剧情、产品展示、口播和氛围长镜头分别处理，不强制快切或固定镜头数。人物参考用于保持一致性，镜头关键帧用于改变构图。实习生不用另外调用导演技能。
+
 ## 实习生：同步项目后，直接与 Codex 对话
 
 1. 同步仓库，在 Codex App 中选择这个本地项目文件夹，再新建聊天。普通的、未关联项目的聊天不会自动获得这个仓库。
-2. 首次在本机 `.env` 配置自己的 `FAL_KEY`；使用 Veo 时另外配置 `GOOGLE_GENERATIVE_AI_API_KEY`。密钥不随 GitHub 同步，已有 `.env` 不要覆盖。共享服务成员使用管理员提供的服务地址与访问令牌。
+2. 首次在本机 `.env` 配置 `FAL_KEY` 和 `GOOGLE_GENERATIVE_AI_API_KEY`，启用 fal 模型与 Google 官方 Veo。密钥不随 GitHub 同步，已有 `.env` 不要覆盖。共享服务成员使用管理员提供的服务地址与访问令牌。
 3. 描述想做的视频即可。`AGENTS.md` 指引 Codex 检查依赖、启动服务、读取模型指南、自动写入并提交分镜任务、查询进度和交付成片。本机需要 Node.js 22+，合成还需要 FFmpeg；可以让 Codex 协助安装。
 
 可以直接说：
@@ -47,6 +49,7 @@ npm start
 
 ```sh
 node cli.js models
+node cli.js guide directing
 node cli.js guide seedance
 node cli.js preview-workflow examples/social-video.json
 # 下一条会实际生成，并产生供应商费用
@@ -60,13 +63,18 @@ node cli.js workflow examples/social-video.json --key coffee-v1 --wait
 ```json
 {
   "name": "Revised film",
-  "clips": ["/outputs/EXISTING-SHOT-1.mp4", "/outputs/REVISED-SHOT-2.mp4"],
+  "clips": [
+    { "url": "/outputs/EXISTING-SHOT-1.mp4", "start": 0.5, "end": 2.5 },
+    { "url": "/outputs/REVISED-SHOT-2.mp4", "start": 1, "end": 4 }
+  ],
   "aspectRatio": "9:16",
   "resolution": "1080p"
 }
 ```
 
-拼接会统一画幅、帧率、音轨，保留原镜头声音；缺失声音的镜头补静音。不同画幅使用留边适配，不裁掉主体。不会自动添加字幕、转场或背景音乐。低分辨率素材选择较高交付档只会缩放，不会增加真实细节。
+先用 `node cli.js inspect /outputs/CLIP.mp4` 获取带时间戳的预览帧，查看后选择素材入点、出点。运行 `node cli.js preview-composition composition.json` 验证素材范围与成片时长，再合成。生成 8 秒可以只选用其中 2 秒，但供应商仍按生成量计费；本地剪辑不重新生成素材。原来的整段 URL 数组仍然支持。
+
+合成统一画幅、24fps 和音轨；每段支持 `volume`（0 静音），独立 `audioTracks` 支持素材范围、时间线位置、音量和淡入淡出，可让对白或环境声跨镜头衔接。缺失原声的镜头补静音。不同画幅使用留边适配，不裁掉主体。不会自动生成音乐、烧录字幕或添加视觉转场。低分辨率素材选择较高交付档只会缩放，不会增加真实细节。字段与声音衔接示例见 [API 文档](docs/API.md)。
 
 ## 可选：MCP 连接
 
@@ -84,7 +92,7 @@ Codex 在本地项目中使用 CLI 即可。若要通过 MCP 工具调用，先�
 }
 ```
 
-工具包括模型发现、官方指南摘要、本地素材上传、费用预览、生成、工作流、任务查询和镜头拼接。`storyboard` MCP prompt 会把图像和所选视频模型的指南一起提供给 agent。各客户端的配置文件格式可能不同，核心设置都是 `node` + `mcp.js` 的绝对路径。
+工具包括模型发现、导演和模型指南、素材上传、费用预览、生成、任务查询、抽帧审片、剪辑预览与合成。`storyboard` MCP prompt 会把导演、图像和所选视频模型的指南一起提供给 agent。各客户端的配置文件格式可能不同，核心设置都是 `node` + `mcp.js` 的绝对路径。
 
 指南放在 `docs/guides/`，包含核对日期、官方来源、适用模式和本项目建议。网页、MCP、CLI 共用这些文件。指南不是偷偷追加到视频提示词的冗长文本：agent 应先阅读，再按模型习惯写提示词。无法强制任何第三方 agent 阅读文档，`AGENTS.md`、工具描述和 MCP prompt 会明确引导它执行这一步。
 

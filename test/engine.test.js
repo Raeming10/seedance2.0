@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { Engine } = require('../lib/engine');
+const { Engine, validateWorkflow } = require('../lib/engine');
 function setup(t, overrides = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-test-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -170,4 +170,100 @@ test('existing clips can be reassembled without any provider submission', async 
     () => x.engine.composeExisting({ ...composition, clips: ['/outputs/hero.png'] }, 'bad'),
     /MP4/,
   );
+});
+
+test('workflow resolves trimmed and repeated shots and independent audio to actual assets', async (t) => {
+  const x = setup(t);
+  let composition;
+  x.media.compose = async (...args) => {
+    composition = args;
+    return { url: '/outputs/cut.mp4' };
+  };
+  const w = x.engine.createWorkflow(
+    {
+      name: 'Coverage',
+      steps: [
+        { id: 'shot', request: { model: 'seedance', prompt: 'A visible action', duration: 5 } },
+      ],
+      compose: {
+        steps: [
+          { step: 'shot', start: 1, end: 2, volume: 0 },
+          { step: 'shot', start: 3, end: 4, volume: 0 },
+        ],
+        audioTracks: [{ url: '@step:shot', start: 0, end: 1.5, at: 0.25 }],
+      },
+    },
+    'coverage',
+  );
+  for (let i = 0; i < 3; i++) await x.engine.tick();
+  assert.equal(x.engine.workflows.get(w.id).status, 'completed');
+  assert.equal(x.calls.length, 1);
+  assert.equal(composition[1][0].url, composition[1][1].url);
+  assert.equal(composition[1][0].start, 1);
+  assert.equal(composition[1][1].end, 4);
+  assert.equal(composition[4][0].url, composition[1][0].url);
+  assert.equal(composition[4][0].at, 0.25);
+});
+
+test('bad edit fields and impossible workflow ranges fail before any generation', (t) => {
+  const x = setup(t);
+  const base = {
+    name: 'Range',
+    steps: [{ id: 'shot', request: { model: 'veo', prompt: 'A cup' } }],
+  };
+  for (const clip of [
+    { step: 'shot', start: -1 },
+    { step: 'shot', start: 2, end: 1 },
+    { step: 'shot', end: 9 },
+    { step: 'shot', start: 8 },
+    { step: 'shot', end: 2, volume: 5 },
+    { step: 'shot', end: 2, speed: 2 },
+  ])
+    assert.throws(() => x.engine.createWorkflow({ ...base, compose: { steps: [clip] } }, 'bad'));
+  assert.throws(
+    () =>
+      validateWorkflow({
+        ...base,
+        compose: { steps: ['shot'], audioTracks: [{ url: '@step:missing' }] },
+      }),
+    /video step/,
+  );
+  assert.throws(
+    () =>
+      validateWorkflow({
+        ...base,
+        steps: [{ id: 'shot', request: { model: 'veo', prompt: 'A cup', audio: false } }],
+        compose: { steps: ['shot'], audioTracks: [{ url: '@step:shot' }] },
+      }),
+    /audio enabled/,
+  );
+  assert.equal(x.engine.jobs.size, 0);
+  assert.equal(x.calls.length, 0);
+});
+
+test('edit idempotency preserves cut timing and audio settings across restart', async (t) => {
+  const x = setup(t);
+  const cut = {
+    name: 'Edit',
+    clips: [{ url: '/outputs/shot.mp4', start: 1, end: 2, volume: 0 }],
+    audioTracks: [{ url: '/assets/sound.wav', start: 0, end: 0.5, at: 0.2 }],
+  };
+  const w = x.engine.composeExisting(cut, 'cut');
+  const restarted = new Engine(x.root, x.providers, x.media, { ffmpeg: true });
+  assert.equal(restarted.composeExisting(cut, 'cut').id, w.id);
+  assert.throws(
+    () => restarted.composeExisting({ ...cut, clips: [{ ...cut.clips[0], end: 3 }] }, 'cut'),
+    /already used/,
+  );
+  assert.throws(
+    () =>
+      restarted.composeExisting(
+        { ...cut, audioTracks: [{ ...cut.audioTracks[0], at: 0.3 }] },
+        'cut',
+      ),
+    /already used/,
+  );
+  await restarted.tick();
+  assert.equal(restarted.workflows.get(w.id).status, 'completed');
+  assert.equal(x.calls.length, 0);
 });

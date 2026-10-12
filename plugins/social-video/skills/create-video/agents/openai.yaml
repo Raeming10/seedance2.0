@@ -1,4 +1,4 @@
 interface:
   display_name: '制作社媒视频'
-  short_description: '把剧情变成参考图、视频镜头与成片，并支持只修改指定镜头'
-  default_prompt: '请使用 $create-video 制作一支竖屏社媒短片，先根据我的剧情设计画面。'
+  short_description: '把剧情转成视觉钩子与分镜，生成参考素材，选取有效片段并审片交付'
+  default_prompt: '请使用 $create-video 根据我的剧情设计视觉开场、有动机的景别变化和剪辑节奏，生成素材并审片交付。'

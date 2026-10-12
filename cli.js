@@ -5,13 +5,15 @@ const { api, upload, waitFor } = require('./lib/client');
 const help = `Seedance Studio (start server with npm start)
   node cli.js models
   node cli.js health
-  node cli.js guide <flare|seedance|minimax|veo>
+  node cli.js guide <directing|flare|seedance|minimax|veo>
   node cli.js upload <local-file>
   node cli.js preview <request.json>
   node cli.js generate <request.json> --key <unique-key> [--wait]
   node cli.js preview-workflow <workflow.json>
   node cli.js workflow <workflow.json> --key <unique-key> [--wait]
   node cli.js compose <composition.json> --key <unique-key> [--wait]
+  node cli.js preview-composition <composition.json>
+  node cli.js inspect <Studio-video-url> [--times 0,0.5,1,2,3]
   node cli.js jobs | workflows
   node cli.js status <job-id>
   node cli.js workflow-status <workflow-id>
@@ -36,7 +38,18 @@ async function main(argv = process.argv.slice(2)) {
   else if (command === 'upload') result = await upload(arg);
   else if (command === 'preview') result = await api('/api/preview', file());
   else if (command === 'preview-workflow') result = await api('/api/workflows/preview', file());
-  else if (['generate', 'workflow', 'compose'].includes(command)) {
+  else if (command === 'preview-composition') result = await api('/api/compose/preview', file());
+  else if (command === 'inspect') {
+    const timeFlag = argv.indexOf('--times');
+    if (timeFlag >= 0 && !argv[timeFlag + 1])
+      throw new Error('--times requires comma-separated seconds.');
+    const times =
+      timeFlag < 0
+        ? undefined
+        : argv[timeFlag + 1].split(',').map((s) => (s.trim() ? Number(s) : NaN));
+    if (times?.some((t) => !Number.isFinite(t))) throw new Error('Invalid inspection timestamp.');
+    result = await api('/api/inspect', { url: arg, times });
+  } else if (['generate', 'workflow', 'compose'].includes(command)) {
     const kind = command === 'generate' ? 'jobs' : 'workflows';
     result = await api(command === 'compose' ? '/api/compose' : '/api/' + kind, file(), key);
     console.error(`Saved ${kind}/${result.id}; idempotency key: ${key}`);
