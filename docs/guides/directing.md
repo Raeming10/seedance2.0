@@ -10,6 +10,18 @@ Translate prose into observable action, a revealing object, a reaction or a cons
 
 Separate four kinds of text: internal scene directions, spoken dialogue/captions, essential context and product/CTA copy. Scene directions belong in the shot plan and model prompts, not automatically on screen. Keep readable dialogue captions when useful; do not ban text universally. Avoid opening paragraphs that explain feelings or spoil an upcoming reveal. Test whether the central action is legible with explanatory text hidden and sound muted; then restore captions and sound for accessibility and delivery.
 
+## Finish a timed script before counting API calls
+
+Load the bundled Prelulu brief for this installation unless the user specifies another brand. For a narrative microdrama, write a complete scene with a desire, obstacle, consequential choice or reversal, and an observable result. “He cancels a meeting; he says it is for you; he comforts you” may be one emotional proposition repeated three times. Give the middle a decision with a consequence, not just another complimentary line.
+
+Make a timed audiovisual beat sheet first: final-film start/end, visible action, information or relationship change, exact dialogue and sound. Then rehearse it. As a rough planning aid, ordinary English speech often lands near 2–3 words/second; charged pauses and physical action need additional room. This is a working estimate, not an API limit, acting prescription or universal pace. Do not add sequential time for an action that occurs during a line, and do not use sparse dialogue alone to justify a long static hold. Silent action can fully earn its time.
+
+Read the resulting scene as a viewer: what question arises, what makes the outcome uncertain, which choice changes the situation, and what does the viewer receive at the end? If the events naturally make a 10-second film, strengthen the story or explain a shorter cut; do not stretch it to 20. A product demonstration, call or atmospheric film should have its own meaningful progression rather than a forced conflict formula.
+
+Derive coverage **after** that script. A two-second insert might require an eight-second source; two adjacent beats might share a source when the camera and action remain coherent. A requested length divided by a model's maximum duration does not determine the ideal call count. Plan generated seconds, retained seconds and image preparation separately. Budget may justify simpler staging, not empty screen time.
+
+For full-film workflows put the timed script and ordered source coverage in the optional API `production` object (required by this creation workflow, optional for older clients and isolated asset tasks). `preview-workflow` checks temporal coverage and returns warnings; creative review still belongs to the agent. See `docs/API.md` and the original worked example in `docs/examples/prelulu-mafia-20s.md`. Keep longer creative reasoning in the adjacent note.
+
 ## Design the opening before generating
 
 For a social feed film, internally consider a few distinct openings and select one using immediate legibility, curiosity, relevance to the actual payoff and production feasibility. Do not generate every alternative or show the user a menu unless they ask. Budget permission for one film is not permission for a paid A/B campaign.
@@ -60,7 +72,7 @@ Keep a human-readable production note next to the internal manifests. For each s
 
 Use identity references to preserve the subject, then create shot-specific keyframes when scale or angle changes. Reusing one first frame for every shot tends to repeat its composition. Generate only the coverage justified by the story and budget; reuse existing suitable media. Digital cropping cannot create a missing angle, perspective or performance.
 
-After directing decisions, read the selected models' guides and translate each shot into supported parameters and prompts. Request only the actions the model can plausibly execute in one source clip. Do not solve a complex scene by cramming many independent cuts and emotions into a short generation.
+After directing decisions, read the shared video-prompting guide and the selected models' guides and translate each shot into supported parameters and prompts. Request only the actions the model can plausibly execute in one source clip. Do not solve a complex scene by cramming many independent cuts and emotions into a short generation.
 
 An eight-second generation can contribute two seconds to the final film. Budget for all generated seconds, not only the retained seconds. Leave useful action handles where appropriate, but avoid unnecessary paid coverage. Cost estimates may have unpriced items; do not promise a total that the tool cannot establish.
 
@@ -74,7 +86,7 @@ Write a composition with selected source ranges. Choose cut points at meaningful
 
 For a sound bridge, mute or lower the duplicated clip's original audio and place that source's audio as an independent `audioTracks` entry. `at` is the sound's position in the assembled film; `start`/`end` select its source. This permits J-cuts (next sound arrives before its picture) and L-cuts (sound continues after its picture). Use available authorized audio; this tool does not create music or dialogue. Keep tracks inside the video duration and check the mix for intelligibility. A limiter prevents overload, but is not mastering or a substitute for listening.
 
-Read `docs/API.md` for exact composition fields. Run `preview-composition` to check source bounds and timeline duration, then `compose` with a stable edit key. Local editing does not regenerate sources. Do not add creative metadata to strict generation or composition schemas; keep it in the production note. All manifests and notes are written by the agent, never imported manually by the user.
+Read `docs/API.md` for exact composition fields. Run `preview-composition` to check source bounds and timeline duration, then `compose` with a stable edit key. Local editing does not regenerate sources. Do not add creative metadata to strict generation or composition schemas; the workflow-level `production` field holds the timed plan, and the production note holds its rationale. Planned ranges are provisional: write a separate composition from the actual performance after inspection. All manifests and notes are written by the agent, never imported manually by the user.
 
 ## Review the film, not just successful jobs
 

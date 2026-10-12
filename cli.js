@@ -5,7 +5,7 @@ const { api, upload, waitFor } = require('./lib/client');
 const help = `Seedance Studio (start server with npm start)
   node cli.js models
   node cli.js health
-  node cli.js guide <directing|flare|seedance|minimax|veo>
+  node cli.js guide <prelulu|directing|video-prompting|flare|seedance|minimax|veo>
   node cli.js upload <local-file>
   node cli.js preview <request.json>
   node cli.js generate <request.json> --key <unique-key> [--wait]

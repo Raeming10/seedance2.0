@@ -8,6 +8,8 @@ Base: `http://127.0.0.1:8000`. Shared servers require `Authorization: Bearer <ST
 - `GET /api/models`: model IDs, modes, ratios, resolutions, duration and reference limits.
 - `GET /api/guides/{flare|seedance|minimax|veo}`: guide Markdown and source links.
 - `GET /api/guides/directing`: visual storytelling, hooks, motivated coverage and review guidance. Read before planning shots; model guides translate those choices into provider-specific prompts.
+- `GET /api/guides/prelulu`: portable default brand, audience, formats and claim boundaries.
+- `GET /api/guides/video-prompting`: script-to-source compilation, reference intent and prompt auditing.
 - `GET /api/example`: the example social workflow.
 - `POST /api/preview`: validate a generation request and estimate cost; no provider call.
 - `POST /api/workflows/preview`: validate every step and dependency before generating anything.
@@ -57,6 +59,19 @@ HTTP errors return `{error}`. API validation errors are 400, token errors 401, o
 `POST /api/workflows` accepts the structure in `examples/social-video.json`, plus an `Idempotency-Key`. Steps are sequential, at most 30. Media references like `@step:hero` select the first output of an earlier step. Forward references, cycles, duplicate IDs and wrong media types are rejected. All steps are validated and required provider credentials checked before execution.
 
 `GET /api/workflows/{id}` returns progress and child job IDs. `GET /api/workflows` lists recent workflows. A failure stops later generation steps. Submitted jobs and downloaded outputs survive server restarts.
+
+### Timed production plan
+
+Full-film creation through the plugin includes a workflow-level `production` object; older clients and standalone assets can omit it. It never becomes part of a provider payload. See `examples/prelulu-mafia-20s.json` for a complete preview-only example and `docs/examples/prelulu-mafia-20s.md` for its script, prompt choices, staged execution and cost.
+
+- `brand`: nonempty name. `targetDuration`: seconds, greater than 0 and at most 600.
+- `story`: nonempty `setup`, `conflict`, `turn`, `payoff`. For a non-narrative format these describe its progression (e.g. problem, obstacle, demonstrated change, result), without inventing dramatic conflict.
+- `beats`: ordered `{id,start,end,action,change,dialogue?}`. Each dialogue entry is `{speaker,text}`. Unique IDs follow step-ID syntax. Beats must cover the target continuously from zero, with positive lengths.
+- `coverage`: ordered `{step,beatIds,start,end,framing,viewpoint,referenceIntent}`. `start/end` select **source** seconds; the array order establishes final-film positions. `beatIds` must name exactly the beats overlapping that edit position. `step` names a video generation step. A source can contribute multiple selected ranges. `referenceIntent` is `none`, `identity`, `composition`, `transition` or `motion`.
+
+Preview and submission reject gaps/overlaps, missing beats, unknown/image sources, out-of-range trims, empty selections and duration mismatch (0.05s rounding tolerance). Coverage durations round to 24fps. If automatic `compose` is supplied, its ranges must agree with coverage. Prefer separate post-inspection composition; provisional timing is not a promise about rendered action.
+
+`productionReview` in workflow preview reports the planned timeline, video calls, generated seconds and warnings about mismatched reference intent, repeated framing/viewpoint, unused paid sources and rough dialogue pacing. Warnings need creative judgment: repeated framing or a silent pause can be intentional. They are not an engagement score, automated directing or proof of a good prompt. No provider call is made by preview. Creative notes remain beside the manifest; unknown fields in requests/compositions are still rejected.
 
 `compose` in a workflow names video step IDs, or objects `{step, start, end, volume}` for selected ranges. To edit existing shots without generating them again, use `POST /api/compose`:
 

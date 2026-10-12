@@ -57,6 +57,17 @@ test(
     });
     assert.match(story.messages[0].content.text, /reference_image_urls/);
     assert.match(story.messages[0].content.text, /Flare/);
+    assert.match(story.messages[0].content.text, /Prelulu creative brief/);
+    assert.match(story.messages[0].content.text, /Video prompting: compile a shot/);
+    const film = await client.callTool({
+      name: 'preview_workflow',
+      arguments: { workflow: require('../examples/prelulu-mafia-20s.json') },
+    });
+    assert.equal(film.isError, undefined);
+    const checked = JSON.parse(film.content[0].text);
+    assert.equal(checked.productionReview.plannedDuration, 20);
+    assert.equal(checked.estimate.knownUsd, 16);
+    assert.equal(checked.estimate.unpricedSteps.length, 6);
     assert.equal(studio.engine.jobs.size, 0);
   },
 );
