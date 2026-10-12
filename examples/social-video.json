@@ -1,0 +1,38 @@
+{
+  "name": "Slow mornings · 10s vertical social film",
+  "steps": [
+    {
+      "id": "hero",
+      "request": {
+        "model": "flare",
+        "prompt": "A handmade white ceramic cup with a thin cobalt rim on a pale oak cafe table. Soft morning window light, natural photographic texture, shallow depth of field. Vertical composition, cup centered in the lower half with clear caption space above. No lettering, no hands, no extra cups.",
+        "aspectRatio": "9:16"
+      }
+    },
+    {
+      "id": "opening",
+      "request": {
+        "model": "seedance",
+        "mode": "image",
+        "prompt": "Close-up of the cup from the opening image. [0-2s] A delicate ribbon of steam rises. [2-5s] The camera slowly pushes toward the blue rim. Preserve the ceramic shape and morning light. Quiet cafe ambience, no dialogue or music. End with the cup filling the lower half.",
+        "firstFrame": "@step:hero",
+        "aspectRatio": "9:16",
+        "resolution": "720p",
+        "duration": 5
+      }
+    },
+    {
+      "id": "ending",
+      "request": {
+        "model": "seedance",
+        "mode": "reference",
+        "prompt": "@Image1 defines the cup, table and lighting. Medium shot at the same cafe. [0-3s] An adult hand carefully turns the cup by its handle toward the window. [3-5s] The hand leaves and the camera holds on the cup. Preserve its white glaze and cobalt rim. Leave space above for a caption. Gentle ceramic sound and room tone, no dialogue or music.",
+        "images": ["@step:hero"],
+        "aspectRatio": "9:16",
+        "resolution": "720p",
+        "duration": 5
+      }
+    }
+  ],
+  "compose": { "steps": ["opening", "ending"], "aspectRatio": "9:16", "resolution": "720p" }
+}

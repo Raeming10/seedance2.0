@@ -1,0 +1,37 @@
+{
+  "name": "seedance-agent-studio",
+  "version": "2.0.0",
+  "description": "Agent-driven social video production with fal and the official Google Gemini API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "mcp": "node mcp.js",
+    "studio": "node cli.js",
+    "format": "prettier --write app.js server.js cli.js mcp.js lib/*.js test/*.js index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml",
+    "format:check": "prettier --check app.js server.js cli.js mcp.js lib/*.js test/*.js index.html style.css README.md AGENTS.md \"docs/**/*.md\" examples/*.json package.json compose.yaml .github/workflows/*.yml"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raeming10/seedance2.0.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Raeming10/seedance2.0/issues"
+  },
+  "homepage": "https://github.com/Raeming10/seedance2.0#readme",
+  "dependencies": {
+    "@fal-ai/client": "^1.10.1",
+    "@google/genai": "^2.28.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.6"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10"
+  }
+}

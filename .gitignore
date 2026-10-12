@@ -5,3 +5,8 @@ config.local.js
 .DS_Store
 *.log
 node_modules/
+.worktrees/
+.studio/
+coverage/
+.env.*
+!.env.example
