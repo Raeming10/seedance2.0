@@ -3,11 +3,11 @@ const assert = require('node:assert/strict');
 const { Providers } = require('../lib/providers');
 const { normalize } = require('../lib/catalog');
 const { allowedDownload } = require('../lib/media');
-test('official Google adapter sends references, duration and native 4K through SDK', async () => {
+test('official Google adapter sends references, duration and native 1080p through SDK', async () => {
   const p = new Providers({ image: async (v) => ({ imageBytes: v, mimeType: 'image/png' }) });
   const prepared = await p.prepare(normalize({ model: 'veo', prompt: 'Cup', images: ['image-a'] }));
   assert.equal(prepared.model, 'veo-3.1-generate-preview');
-  assert.equal(prepared.config.resolution, '4k');
+  assert.equal(prepared.config.resolution, '1080p');
   assert.equal(prepared.config.durationSeconds, 8);
   assert.deepEqual(prepared.config.referenceImages, [
     { image: { imageBytes: 'image-a', mimeType: 'image/png' }, referenceType: 'asset' },

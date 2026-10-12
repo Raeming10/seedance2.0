@@ -71,10 +71,10 @@ test(
   },
 );
 test(
-  'Veo 2K delivery downscales to 1440x2560 and strips audio without re-downloading the source',
+  'Veo silent delivery preserves native 1080p and strips audio without re-downloading the source',
   { skip: !ffmpegAvailable(), timeout: 30000 },
   async (t) => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-2k-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-veo-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
     const media = new MediaStore(root),
       source = path.join(root, 'outputs', 'veo-test-0.mp4');
@@ -82,7 +82,11 @@ test(
       '-f',
       'lavfi',
       '-i',
-      'color=c=green:s=90x160:r=24',
+      'color=c=green:s=1080x1920:r=24',
+      '-f',
+      'lavfi',
+      '-i',
+      'sine=frequency=440:sample_rate=48000',
       '-t',
       '0.1',
       '-c:v',
@@ -93,7 +97,7 @@ test(
     ]);
     const out = await media.saveResult('veo-test', ['https://never-download.invalid/video'], {
       model: 'veo',
-      resolution: '2k',
+      resolution: '1080p',
       aspectRatio: '9:16',
       audio: false,
     });
@@ -104,8 +108,8 @@ test(
         { encoding: 'utf8' },
       ),
     );
-    assert.equal(probe.streams[0].width, 1440);
-    assert.equal(probe.streams[0].height, 2560);
+    assert.equal(probe.streams[0].width, 1080);
+    assert.equal(probe.streams[0].height, 1920);
     assert.equal(probe.streams.length, 1);
   },
 );

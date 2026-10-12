@@ -41,9 +41,9 @@ Flare 的价格随输入、输出与复杂度变化；固定 medium 不意味着
 
 ## Google 官方 Veo
 
-`veo-3.1-generate-preview` 经 `@google/genai` 直连 Gemini API，不通过 fal。支持最多 3 张参考图，也支持首尾帧；二者不能混用。没有原生 2K 档，2K 交付使用 4K → 1440p 的本地转换。
+`veo-3.1-generate-preview` 经 `@google/genai` 直连 Gemini API，不通过 fal。支持最多 3 张参考图，也支持首尾帧；二者不能混用。没有原生 2K 档，按项目需求默认直接生成原生 1080p，仅开放 720p / 1080p。
 
-当前标准版价格：720p/1080p $0.40/秒；4K $0.60/秒。8 秒 2K 交付按 4K 生成计费，约 $4.80。高分辨率、参考图固定 8 秒；模型原生带音频，静音是在本地去音轨，价格不下降。
+当前标准版价格：720p/1080p $0.40/秒，8 秒约 $3.20。1080p、参考图固定 8 秒；模型原生带音频，静音是在本地去音轨，价格不下降。Google 的原生 4K 为 $0.60/秒，本项目不开放该档位。
 
 [Google API 与提示词指南](https://ai.google.dev/gemini-api/docs/veo) · [Google 价格](https://ai.google.dev/gemini-api/docs/pricing#veo-3.1)
 

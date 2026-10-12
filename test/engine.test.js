@@ -146,7 +146,11 @@ test('failed upstream step prevents later billable steps', async (t) => {
 test('preflight reports unknown prices and blocks unavailable FFmpeg before submitting', (t) => {
   const x = setup(t);
   x.engine.ffmpeg = false;
-  assert.throws(() => x.engine.submit({ model: 'veo', prompt: 'Cup' }, 'no-ffmpeg'), /FFmpeg/);
+  assert.equal(x.engine.preflight({ model: 'veo', prompt: 'Cup' }).request.resolution, '1080p');
+  assert.throws(
+    () => x.engine.submit({ model: 'veo', prompt: 'Cup', audio: false }, 'no-ffmpeg'),
+    /FFmpeg/,
+  );
   assert.equal(x.engine.preflight({ model: 'flare', prompt: 'Cup' }).estimate.usd, null);
   assert.equal(x.calls.length, 0);
 });

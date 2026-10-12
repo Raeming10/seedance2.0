@@ -63,7 +63,7 @@ async function updateModel() {
   options(
     'resolution',
     m.resolutions,
-    { '2k': m.id === 'veo' ? '2K · 4K 转 1440p' : '2K · 长边约 2048', '768p': '768P · 原生' },
+    { '2k': '2K · 长边约 2048', '768p': '768P · 原生' },
     m.resolutions[0],
   );
   $('durationField').classList.toggle('hidden', m.kind === 'image');

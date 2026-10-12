@@ -37,12 +37,13 @@
         </div>
       </section>
       <nav class="tabs" aria-label="工作区">
-        <button class="active" data-tab="create">创作素材</button
-        ><button data-tab="workflow">分镜工作流</button><button data-tab="agent">连接 AI</button>
+        <button class="active" data-tab="agent">AI 对话创作</button
+        ><button data-tab="create">手动制作素材</button
+        ><button data-tab="workflow">高级工作流</button>
       </nav>
       <div class="workspace">
         <section class="editor">
-          <div id="createTab" class="tab-content">
+          <div id="createTab" class="tab-content hidden">
             <div class="panel-heading">
               <span class="eyebrow">CREATE</span><span class="subtle">统一模型 · 自动保存</span>
             </div>
@@ -118,71 +119,83 @@
             </div>
             <h2>一次编排，连续完成。</h2>
             <p class="body-copy">
-              在 AI 对话中描述剧情，让 AI 通过 MCP 提交分镜。也可以载入 AI
-              写好的工作流，在这里查看和执行。
+              在 Codex 对话中描述剧情，AI
+              会自动编写并提交分镜任务。生成进度和结果会出现在创作记录中，你无需编写或导入 JSON。
             </p>
-            <div class="workflow-tools">
-              <button id="sampleWorkflow" class="secondary">载入示例</button
-              ><label class="secondary upload-button"
-                >导入 JSON<input
-                  id="workflowFile"
-                  type="file"
-                  accept="application/json,.json"
-                  hidden
-              /></label>
-            </div>
-            <textarea
-              id="workflowJson"
-              class="code-input"
-              rows="12"
-              placeholder="粘贴 AI 编写的工作流 JSON…"
-              aria-label="分镜工作流 JSON"
-            ></textarea>
-            <div id="storyboard" class="storyboard"></div>
-            <div id="workflowEstimate" class="estimate hidden"></div>
-            <div class="actions">
-              <button id="previewWorkflow" class="secondary">检查工作流</button
-              ><button id="runWorkflow" class="primary">执行全部镜头 ↗</button>
-            </div>
-            <p class="subtle">
-              会依次生成所有素材并产生费用。进度保存在服务器，关闭网页后仍会继续。
-            </p>
+            <details class="guide">
+              <summary>高级：手动导入 / 调试工作流（通常无需使用）</summary>
+              <p class="body-copy">
+                JSON 是 AI
+                与生成工具之间的任务清单，用于记录镜头顺序、参考图和模型参数。这里只供检查、复用或调试任务时使用。
+              </p>
+              <div class="workflow-tools">
+                <button id="sampleWorkflow" class="secondary">载入示例</button
+                ><label class="secondary upload-button"
+                  >导入 JSON<input
+                    id="workflowFile"
+                    type="file"
+                    accept="application/json,.json"
+                    hidden
+                /></label>
+              </div>
+              <textarea
+                id="workflowJson"
+                class="code-input"
+                rows="12"
+                placeholder="粘贴 AI 编写的工作流 JSON…"
+                aria-label="分镜工作流 JSON"
+              ></textarea>
+              <div id="storyboard" class="storyboard"></div>
+              <div id="workflowEstimate" class="estimate hidden"></div>
+              <div class="actions">
+                <button id="previewWorkflow" class="secondary">检查工作流</button
+                ><button id="runWorkflow" class="primary">执行全部镜头 ↗</button>
+              </div>
+              <p class="subtle">
+                会依次生成所有素材并产生费用。进度保存在服务器，关闭网页后仍会继续。
+              </p>
+            </details>
           </div>
-          <div id="agentTab" class="tab-content hidden">
+          <div id="agentTab" class="tab-content">
             <div class="panel-heading">
-              <span class="eyebrow">AGENT READY</span><span class="tag">MCP + CLI</span>
+              <span class="eyebrow">AGENT READY</span><span class="tag">Codex 对话 → 成片</span>
             </div>
-            <h2>在你熟悉的 AI 里创作。</h2>
+            <h2>说出剧情，让 AI 完成制作。</h2>
             <p class="body-copy">
-              把这个项目交给 Codex 或 Claude，让它读取
-              AGENTS.md。你提供剧情，它负责读模型指南、拆分镜头、制作素材和生成视频。
+              在 Codex App 中选择这个项目，新建聊天并描述故事。AI
+              会读取模型指南、拆分镜头、生成参考图、制作视频并合成成片。你可以直接在对话中要求修改某个镜头。
             </p>
             <div class="callout">
               <span class="eyebrow">TRY SAYING</span>
               <p id="agentPrompt">
                 请用这个项目制作一支 10 秒、9:16
-                的咖啡杯社媒短片。先读取模型提示词指南，生成统一参考图，再制作两个镜头并拼接。用
-                Seedance 2.0、720p，先给我看分镜和费用估算。
+                的咖啡杯社媒短片：清晨，一只蓝色陶瓷杯冒着热气，最后一只手端起杯子。用 Seedance
+                2.0、720p。请读取
+                AGENTS.md，检查环境并启动服务，按模型指南制作参考图和两个镜头，完成生成与合成，把成片给我。
               </p>
               <button id="copyPrompt" class="small-button">复制创作指令</button>
             </div>
-            <h3>连接步骤</h3>
+            <h3>实习生开始使用</h3>
             <ol class="setup-steps">
-              <li>在项目目录运行 <code>npm ci</code>，把 Key 填入本地 <code>.env</code>。</li>
-              <li>运行 <code>npm start</code>。合成视频和 Veo 2K 交付需要安装 FFmpeg。</li>
+              <li>同步 GitHub 项目，在 Codex App 中选择该本地文件夹，新建聊天。</li>
+              <li>首次把自己的 Key 填入本地 <code>.env</code>。密钥不会随 GitHub 同步。</li>
               <li>
-                给 AI 客户端添加 MCP 服务，命令为 <code>node</code>，参数为项目中
-                <code>mcp.js</code> 的绝对路径。
+                用自然语言描述视频。Codex 会检查依赖、启动服务并执行制作；本机需要 Node.js
+                22+，合成成片还需要 FFmpeg。
               </li>
             </ol>
             <p class="body-copy">
-              只用 fal 时无需 Google Key。团队部署可统一管理密钥，实习生通过 Studio
-              地址和访问令牌连接。
+              不需要手动导入 JSON，也不需要额外配置 MCP。这个网页用于查看进度和预览结果；只用 fal
+              模型时无需 Google Key。
             </p>
-            <pre class="command">
-node cli.js models
-node cli.js guide seedance
-node cli.js preview-workflow examples/social-video.json</pre>
+            <details class="guide">
+              <summary>可选：其他 AI 客户端与团队共享服务</summary>
+              <p class="body-copy">
+                支持 MCP 的客户端可连接本项目的 mcp.js。团队也可集中部署
+                Studio，由管理员管理供应商密钥，成员通过服务地址与访问令牌连接。配置方法见项目
+                README。
+              </p>
+            </details>
           </div>
         </section>
         <section class="library">

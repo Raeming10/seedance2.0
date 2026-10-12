@@ -28,7 +28,7 @@ Base: `http://127.0.0.1:8000`. Shared servers require `Authorization: Bearer <ST
 }
 ```
 
-Optional `mode` is inferred from inputs. Frame modes use `firstFrame` and optional `lastFrame` instead of reference arrays. Flare defaults to medium, one image and `2k`, and does not accept duration. Flare's `edit` mode uses `images`. Video defaults are 5 seconds except Veo (8 seconds). Explicit incompatible parameters fail before submission; the API does not silently change them.
+Optional `mode` is inferred from inputs. Frame modes use `firstFrame` and optional `lastFrame` instead of reference arrays. Flare defaults to medium, one image and `2k`, and does not accept duration. Flare's `edit` mode uses `images`. Video defaults are 5 seconds except Veo (8 seconds, native `1080p`). Veo accepts only `1080p` and `720p`; it does not convert a 2K request to 4K. Explicit incompatible parameters fail before submission; the API does not silently change them.
 
 For images, `aspectRatio` can be a custom ratio between 1:3 and 3:1. Other models accept only their advertised ratios. MiniMax frame mode inherits the input picture's aspect ratio; use matching reference images or reference mode. The adapter does not silently crop uploaded frames.
 

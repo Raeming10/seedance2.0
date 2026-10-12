@@ -99,9 +99,15 @@ test('MiniMax references use its actual schema and native resolution', () => {
 test('Veo validates reference/frames exclusivity, ratios and high-resolution durations', () => {
   const r = normalize({ model: 'veo', prompt: 'A cup', images: [image] });
   assert.equal(r.duration, 8);
-  assert.equal(r.resolution, '2k');
-  assert.equal(estimate(r).usd, 4.8);
+  assert.equal(r.resolution, '1080p');
+  assert.equal(estimate(r).usd, 3.2);
+  assert.equal(
+    normalize({ model: 'veo', prompt: 'Pan', resolution: '720p', duration: 4 }).duration,
+    4,
+  );
   for (const bad of [
+    { resolution: '2k' },
+    { resolution: '4k' },
     { resolution: '1080p', duration: 6 },
     { resolution: '720p', duration: 4, images: [image] },
     { images: [image], firstFrame: image },
