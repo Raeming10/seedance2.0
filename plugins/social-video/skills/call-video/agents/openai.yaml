@@ -1,0 +1,4 @@
+interface:
+  display_name: '复用视频组件'
+  short_description: '剧情片复用字幕、POV title、角色头部与素材库片尾；明确要求时才做通话'
+  default_prompt: '请使用 $call-video 为已有剧情素材复用原来的字幕、POV title、角色头部和片尾组件，不引入通话剧情，不加水印。'

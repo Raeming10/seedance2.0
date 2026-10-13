@@ -1,4 +1,4 @@
 interface:
-  display_name: 'Video Prompting · 视频模型提示词'
-  short_description: '把剧本节拍编译为对应模型的镜头、动作、声音与参考模式提示词'
-  default_prompt: '使用 $video-prompting 把这份分镜写成适合所选视频模型的生成提示词，并检查参考模式和动作时长。'
+  display_name: '视频提示词'
+  short_description: '保留台词，按完整 H3 参考指南编译分镜、动作、运镜与声音'
+  default_prompt: '请使用 $video-prompting 保留原对白，并按 H3 官方 Ref2VA 完整格式优化这段视频提示词。'

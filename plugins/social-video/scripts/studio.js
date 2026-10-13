@@ -359,7 +359,7 @@ async function main(argv = process.argv.slice(2)) {
         'node <plugin>/scripts/studio.js setup | doctor | start | restart | <Studio CLI command>',
       examples: [
         'models',
-        'guide seedance',
+        'guide minimax',
         'preview-workflow /absolute/plan.json',
         'workflow /absolute/plan.json --key unique-key --wait',
       ],

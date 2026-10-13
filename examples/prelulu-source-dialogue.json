@@ -1,0 +1,90 @@
+{
+  "name": "Prelulu — supplied dialogue preserved (planning example; preview only)",
+  "production": {
+    "brand": "Prelulu",
+    "targetDuration": 14,
+    "sourceDialogue": [
+      {
+        "speaker": "Mr. Dubois",
+        "text": "Sir, this is my daughter, and she is my only heir. She is very beautiful, isn't she?"
+      }
+    ],
+    "story": {
+      "setup": "The adult daughter returns from university and enters her father's office without knocking.",
+      "conflict": "Her father is meeting the cold Italian mafia boss Vicenzo Santoro.",
+      "turn": "Her father introduces his only heir; Vicenzo's attention turns to her.",
+      "payoff": "His expression softens into a smile, revealing attraction without inventing a reply."
+    },
+    "beats": [
+      {
+        "id": "entry",
+        "start": 0,
+        "end": 2.3,
+        "action": "Door opens and the daughter steps in, revealing both men.",
+        "change": "A familiar office reveals an unexpected guest.",
+        "dialogue": []
+      },
+      {
+        "id": "introduction",
+        "start": 2.3,
+        "end": 11.5,
+        "action": "The father gestures toward his daughter while speaking the complete supplied line.",
+        "change": "The guest learns she is the only heir.",
+        "dialogue": [
+          {
+            "speaker": "Mr. Dubois",
+            "text": "Sir, this is my daughter, and she is my only heir. She is very beautiful, isn't she?"
+          }
+        ]
+      },
+      {
+        "id": "reaction",
+        "start": 11.5,
+        "end": 14,
+        "action": "Vicenzo looks at her and his cold expression gives way to a soft smile.",
+        "change": "The supplied attraction becomes visible; his next move remains unanswered.",
+        "dialogue": []
+      }
+    ],
+    "coverage": [
+      {
+        "step": "scene",
+        "beatIds": ["entry", "introduction", "reaction"],
+        "start": 0,
+        "end": 14,
+        "framing": "doorway reveal, medium exchange, close reaction",
+        "viewpoint": "adult daughter's first-person eye level",
+        "referenceIntent": "identity"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "father",
+      "request": {
+        "model": "flare",
+        "prompt": "Single adult French man, age 55, distinguished silver hair, navy tailored suit and white shirt, no tattoos. Neutral clean background, softly lit photorealistic identity portrait, waist-up, hands visible, relaxed neutral posture. One person only. No office staging, no panels, no text."
+      }
+    },
+    {
+      "id": "vicenzo",
+      "request": {
+        "model": "flare",
+        "prompt": "Single adult Italian man, age 32, black hair, green eyes, athletic build, black open-collar shirt with subtle black tattoos visible on forearms. Neutral clean background, softly lit photorealistic identity portrait, waist-up, relaxed neutral posture. One person only. No office staging, no panels, no text."
+      }
+    },
+    {
+      "id": "scene",
+      "request": {
+        "model": "minimax",
+        "mode": "reference",
+        "images": ["@step:father", "@step:vicenzo"],
+        "prompt": "subject_definitions:\n<Subject 1> is Mr. Dubois, the older French father from <Picture 1> (attached Image 1). Retain his face, silver hair and navy suit.\n<Subject 2> is Vicenzo Santoro, the adult Italian boss from <Picture 2> (attached Image 2). Retain his black hair, green eyes, athletic build, black open-collar shirt and visible tattoo placement. The images provide identities, not opening compositions.\n\nsummary:\nAn adult daughter comes home from university and enters her father's office without knocking. Her father introduces his only heir to Vicenzo; his cold expression softens as he falls for her. First-person daughter's viewpoint throughout; she remains offscreen.\n\nretention_analysis:\n<Subject 1> retains identity and wardrobe in shots 1–2; new seated posture and welcoming gesture are freely staged. <Subject 2> retains identity and wardrobe throughout; he remains seated in one guest chair, with a new eyeline and subtle expression. Each man appears once. The plain backgrounds of the identity pictures are not transferred. The new setting is a warm walnut office at dusk, desk beside a tall window, soft amber desk lamp. No location reference is attached.\n\ndetailed_description:\nPhotorealistic cinematic drama, vertical 9:16, warm skin against cool window light, shallow depth of field, natural motion. No graphics or embedded subtitles.\n[Shot 1] 00:00–00:02.300. Daughter's eye-level medium-wide POV entering through the opening office door. The door edge sweeps out of foreground as the camera advances one short step, revealing <Subject 1> behind his desk at screen left and <Subject 2> seated in a single guest chair at screen right. <Subject 2> stops turning a pen and looks up toward the arriving daughter; his jaw is initially set. The camera slows as she stops. Door latch, one footstep, quiet cloth movement; no vocalization.\nAt 00:02.300, cut to [Shot 2] 00:02.300–00:11.500. Eye-level medium view from the daughter's position: <Subject 1> is foreground left and <Subject 2> in the right background. <Subject 1>'s stern look warms when he sees his daughter. He opens one hand toward her and turns his eyes to <Subject 2>. <Subject 1> (S1), a mature warm French-accented voice, speaks conversational English without rushing: <d>[English] Sir, this is my daughter, and she is my only heir. She is very beautiful, isn't she?</d> His gesture happens during the introduction. The camera slides gently thirty centimeters to the right during the line, bringing <Subject 2>'s attentive eyes into clearer view without crossing the eyeline. Only <Subject 1>'s lips move during the line. <Subject 2> listens, gradually shifting his attention from the father to the daughter. No additional speech.\nAt 00:11.500, cut to [Shot 3] 00:11.500–00:15.000. Close view of <Subject 2> from the daughter's standing eye level. He briefly looks from her face downward and returns to her eyes; his jaw relaxes and the corner of his mouth lifts into a restrained, unexpectedly soft smile. A slow twenty-centimeter push-in ends on his green eyes and the smile by 00:14.000. He remains seated, hands still; no new dialogue or consequential action. Hold the same look through the source tail. The intended edit ends at 00:14.000 on this unanswered attraction.\n\noverall_soundscape:\nA quiet office, distant traffic through closed windows, door latch and a single arrival footstep, subtle fabric and chair creaks. Keep dialogue clear. No phone ringing or connection sounds.\n\nnon_diegetic_music:\nN/A\n",
+        "duration": 15,
+        "resolution": "768p",
+        "aspectRatio": "9:16",
+        "audio": true
+      }
+    }
+  ]
+}

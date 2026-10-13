@@ -52,15 +52,7 @@ tool(
   'get_prompt_guide',
   'Read this BEFORE writing prompts for the selected model. Includes official source links and mode-specific conventions.',
   {
-    model: z.enum([
-      'prelulu',
-      'directing',
-      'video-prompting',
-      'flare',
-      'seedance',
-      'minimax',
-      'veo',
-    ]),
+    model: z.enum(['prelulu', 'directing', 'video-prompting', 'flare', 'minimax', 'veo']),
   },
   ({ model }) => api('/api/guides/' + model),
   true,
@@ -134,9 +126,9 @@ server.registerPrompt(
   'storyboard',
   {
     description: 'Turn an intern’s story into a reference-consistent social video workflow.',
-    argsSchema: { idea: z.string(), model: z.enum(['seedance', 'minimax', 'veo']).optional() },
+    argsSchema: { idea: z.string(), model: z.enum(['minimax', 'veo']).optional() },
   },
-  async ({ idea, model = 'seedance' }) => {
+  async ({ idea, model = 'minimax' }) => {
     const [video, image, directing, brand, prompting] = await Promise.all([
       api('/api/guides/' + model),
       api('/api/guides/flare'),
@@ -150,7 +142,7 @@ server.registerPrompt(
           role: 'user',
           content: {
             type: 'text',
-            text: `Create a social-video storyboard from this idea: ${idea}\nDefault to Prelulu official-account content and 9:16 unless the user overrides them. Write a complete timed script with meaningful progression BEFORE deriving model calls. Read the brand, directing and prompting guides below, then compile each source shot for its chosen reference mode. Include production timing and coverage in full-film workflows and review preview_workflow warnings. Inspect keyframes before their video phase; inspect actual footage before selecting in/out points and composing within the user's authorization. Never ask the user to import JSON.\n\n${brand.content}\n\n${directing.content}\n\n${prompting.content}\n\n${image.content}\n\n${video.content}`,
+            text: `Create a social-video storyboard from this idea: ${idea}\nDefault to Prelulu official-account content and 9:16 unless the user overrides them. Preserve supplied dialogue verbatim and preserve the supplied plot. First estimate its natural duration; if the requested length is clearly longer, independently compile the complete naturally paced shorter story and tell the user its estimated duration, without a length-only confirmation. Fast pacing means compressing screen time through efficient shot construction and editing while telling the entire supplied story clearly: overlap dialogue with relevant action, remove redundant coverage and retain causal links, key reactions and every supplied line. It does not mean arbitrary rapid cuts or omitting story information. Do not add dialogue or story without explicit authorization. Design audiovisual coverage BEFORE deriving model calls. Do not consider a video call unless explicitly requested. Reuse the existing captions, POV title and character header; no Prelulu watermark. Read the brand, directing and prompting guides below, then compile each source shot for its chosen reference mode. Include production timing and coverage in full-film workflows and review preview_workflow warnings. Inspect keyframes before their video phase; inspect actual footage before selecting in/out points and composing within the user's authorization. Never ask the user to import JSON.\n\n${brand.content}\n\n${directing.content}\n\n${prompting.content}\n\n${image.content}\n\n${video.content}`,
           },
         },
       ],

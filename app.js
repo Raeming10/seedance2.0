@@ -58,7 +58,7 @@ function options(id, values, labels = {}, preferred) {
 async function updateModel() {
   const m = selected();
   if (!m) return;
-  options('mode', m.modes, modes);
+  options('mode', m.modes, modes, m.defaultMode);
   options('ratio', [...m.ratios, ...(m.kind === 'image' ? ['custom'] : [])], { custom: '自定义…' });
   options(
     'resolution',
@@ -391,7 +391,7 @@ function recordCard(record) {
       use.className = 'small-button';
       use.textContent = '用作视频首帧';
       use.onclick = async () => {
-        $('model').value = 'seedance';
+        $('model').value = 'minimax';
         await updateModel();
         $('mode').value = 'image';
         state.assets = [{ url: output.url, kind: 'image', name: '已生成参考图' }];
@@ -478,7 +478,7 @@ async function init() {
     'model',
     state.models.map((m) => m.id),
     Object.fromEntries(state.models.map((m) => [m.id, m.name])),
-    'seedance',
+    'minimax',
   );
   await updateModel();
   await refresh();

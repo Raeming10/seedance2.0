@@ -1,5 +1,5 @@
 {
-  "name": "Slow mornings · 10s vertical social film",
+  "name": "Slow mornings \u00b7 10s vertical social film",
   "steps": [
     {
       "id": "hero",
@@ -12,27 +12,31 @@
     {
       "id": "opening",
       "request": {
-        "model": "seedance",
+        "model": "minimax",
         "mode": "image",
-        "prompt": "Close-up of the cup from the opening image. [0-2s] A delicate ribbon of steam rises. [2-5s] The camera slowly pushes toward the blue rim. Preserve the ceramic shape and morning light. Quiet cafe ambience, no dialogue or music. End with the cup filling the lower half.",
+        "prompt": "detailed_description:\nThe opening frame matches the supplied image. Photorealistic morning caf\u00e9. [Shot 1] Close-up of the cup. A thin ribbon of steam curls upward, initially to the left, then straightens. A slow ten-centimeter push-in brings the cobalt rim into sharp detail while the distant window stays softly blurred. The cup remains still.\n\noverall_soundscape:\nQuiet caf\u00e9 room tone, no dialogue.\n\nnon_diegetic_music:\nN/A",
         "firstFrame": "@step:hero",
         "aspectRatio": "9:16",
-        "resolution": "720p",
+        "resolution": "768p",
         "duration": 5
       }
     },
     {
       "id": "ending",
       "request": {
-        "model": "seedance",
+        "model": "minimax",
         "mode": "reference",
-        "prompt": "@Image1 defines the cup, table and lighting. Medium shot at the same cafe. [0-3s] An adult hand carefully turns the cup by its handle toward the window. [3-5s] The hand leaves and the camera holds on the cup. Preserve its white glaze and cobalt rim. Leave space above for a caption. Gentle ceramic sound and room tone, no dialogue or music.",
+        "prompt": "subject_definitions:\n<Subject 1> is the white ceramic cup with cobalt rim from <Picture 1> (attached Image 1). <Subject 2> is its pale oak table and morning window lighting from the same image. These are reusable subject and environment references, not a first-frame lock.\n\nsummary:\nA new medium shot shows a hand turning the referenced cup toward the window.\n\nretention_analysis:\nRetain cup shape, glaze, rim, table material and soft light direction. Change viewpoint to a medium side angle. Introduce one adult hand; the cup remains on the table.\n\ndetailed_description:\nPhotorealistic, shallow depth of field. [Shot 1] Medium view from the side. In the first three seconds an adult hand enters from screen right, grips the handle, and gently rotates the cup a quarter-turn toward the window. The camera tracks ten centimeters with the hand. During the final two seconds the hand releases and leaves to the right; camera settles as steam rises.\n\noverall_soundscape:\nQuiet room tone and a soft ceramic scrape synchronized to rotation. No dialogue.\n\nnon_diegetic_music:\nN/A",
         "images": ["@step:hero"],
         "aspectRatio": "9:16",
-        "resolution": "720p",
+        "resolution": "768p",
         "duration": 5
       }
     }
   ],
-  "compose": { "steps": ["opening", "ending"], "aspectRatio": "9:16", "resolution": "720p" }
+  "compose": {
+    "steps": ["opening", "ending"],
+    "aspectRatio": "9:16",
+    "resolution": "1080p"
+  }
 }

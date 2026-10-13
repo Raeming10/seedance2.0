@@ -1,8 +1,14 @@
+# Source fidelity comes before directing
+
+The user owns the plot and dialogue. Lock exact supplied lines and speaker/order. Design cinematic action, camera and sound to express those events, not to add new ones. If a requested runtime clearly exceeds the complete source’s natural duration, independently direct and compile the shorter coherent cut, report its estimated duration, and proceed within existing authorization without asking for a duration-only confirmation. Do not use a narrative formula as permission to invent conflict or a reply. No call premise or fixed phone camera unless the user explicitly requests video calling. Reuse existing subtitle, POV-title and character-header components; no Prelulu watermark or improvised UI. Count the selected library end card separately in the total.
+
 # Directing social videos
 
 This is the studio's creative guidance, not a provider specification or a promise of engagement. Read it when developing a story or revising a cut. Preserve the user's plot, point of view, tone, audience, product claims and chosen format. A deliberate long take, slow mood film or text-led concept can be appropriate; do not replace it with a compulsory fast-cut template.
 
 ## From brief to observable events
+
+Fast pacing means compressing screen time through efficient shot construction and editing while telling the entire supplied story clearly: overlap dialogue with relevant action, remove redundant coverage and retain causal links, key reactions and every supplied line. It does not mean arbitrary rapid cuts or omitting story information.
 
 Identify the intended audience response and the change the film should show: a decision, discovery, relationship shift, demonstration or payoff. Use what the user already supplied; ask only when a missing fact changes the creative direction. Make reasonable creative choices without requiring approval for each shot.
 
@@ -12,15 +18,29 @@ Separate four kinds of text: internal scene directions, spoken dialogue/captions
 
 ## Finish a timed script before counting API calls
 
-Load the bundled Prelulu brief for this installation unless the user specifies another brand. For a narrative microdrama, write a complete scene with a desire, obstacle, consequential choice or reversal, and an observable result. “He cancels a meeting; he says it is for you; he comforts you” may be one emotional proposition repeated three times. Give the middle a decision with a consequence, not just another complimentary line.
+Load the bundled Prelulu brief for this installation unless the user specifies another brand. For a supplied narrative, find its existing desire, obstacle and observable turn; do not invent missing events. Preserve all supplied dialogue word for word, speaker for speaker, in order. Only an explicitly authorized original-writing or expansion task may add new events. “He cancels a meeting; he says it is for you; he comforts you” may be one emotional proposition repeated three times. For an authorized original-writing task, a decision with a consequence can strengthen the middle; do not add it to a supplied story.
 
 Make a timed audiovisual beat sheet first: final-film start/end, visible action, information or relationship change, exact dialogue and sound. Then rehearse it. As a rough planning aid, ordinary English speech often lands near 2–3 words/second; charged pauses and physical action need additional room. This is a working estimate, not an API limit, acting prescription or universal pace. Do not add sequential time for an action that occurs during a line, and do not use sparse dialogue alone to justify a long static hold. Silent action can fully earn its time.
 
-Read the resulting scene as a viewer: what question arises, what makes the outcome uncertain, which choice changes the situation, and what does the viewer receive at the end? If the events naturally make a 10-second film, strengthen the story or explain a shorter cut; do not stretch it to 20. A product demonstration, call or atmospheric film should have its own meaningful progression rather than a forced conflict formula.
+Read the resulting scene as a viewer: what question arises, what makes the outcome uncertain, which choice changes the situation, and what does the viewer receive at the end? If the events naturally make a 10-second film, compile the complete shorter cut and tell the user its natural duration; do not stretch it to 20. A product demonstration, call or atmospheric film should have its own meaningful progression rather than a forced conflict formula.
 
 Derive coverage **after** that script. A two-second insert might require an eight-second source; two adjacent beats might share a source when the camera and action remain coherent. A requested length divided by a model's maximum duration does not determine the ideal call count. Plan generated seconds, retained seconds and image preparation separately. Budget may justify simpler staging, not empty screen time.
 
-For full-film workflows put the timed script and ordered source coverage in the optional API `production` object (required by this creation workflow, optional for older clients and isolated asset tasks). `preview-workflow` checks temporal coverage and returns warnings; creative review still belongs to the agent. See `docs/API.md` and the original worked example in `docs/examples/prelulu-mafia-20s.md`. Keep longer creative reasoning in the adjacent note.
+For full-film workflows put the timed script and ordered source coverage in the optional API `production` object (required by this creation workflow, optional for older clients and isolated asset tasks). `preview-workflow` checks temporal coverage and returns warnings; creative review still belongs to the agent. See `docs/API.md` and the source-preserving H3 example `examples/prelulu-source-dialogue.json`. The older `docs/examples/prelulu-mafia-20s.md` is an original-writing example, not permission to replace supplied dialogue. Keep longer creative reasoning in the adjacent note.
+
+## Rehearse the shortest coherent version
+
+Before assigning the requested runtime, play the complete scene at natural speed with dialogue and simultaneous actions overlapping. Write its shortest coherent duration in the production note, then identify exactly what information or emotional change would disappear if it were shortened further. If a supplied 20-second brief naturally plays in about ten, compile the faithful ten-second story and tell the user its estimated duration plus the selected end card; continue within existing generation authorization without waiting for a length-only decision. Do not add discoveries, resistance, decisions, dialogue or results without that authorization. Do not add arbitrary twists, dialogue quotas, more angles or slower hands to occupy seconds. Deliberate stillness can work when attention or understanding actually changes during it.
+
+For each cut, name the question raised by the preceding shot and what the next shot lets the viewer learn or feel. If both carry the same information, combine them. Avoid separating every small gesture into a source; a continuous exchange can preserve performance and causality better. A pretty insert is not automatically useful coverage.
+
+Read the exchange as speech, not copywriting. Who wants what from whom, why this line now, and what changes in the response? If supplied lines seem generic, explain that as optional editorial feedback; do not replace them without approval. With sound and captions, a viewer should understand the literal conflict without a production note; muted viewing should still expose the main action. A prop whose meaning is essential needs legible context, not an unreadable “contract” the director alone understands.
+
+### Failure case to challenge, not imitate
+
+“Your family bought a bride. Not me.” → tear a sheet → “Then the deal is off.” → “One dance. Your choice.” does not establish why refusing a purchased marriage becomes accepting a dance. Assigning seven seconds to the tear and six to the hand cannot supply that missing cause. A ring, page and open palm do not by themselves establish mafia stakes. Adding a handsome reaction or brand caption does not fix this. For original writing, revise until the relationship change is intelligible. For supplied source material, report the missing causal link and ask before changing it.
+
+Apply the same test to a call: a ringing screen, two generic lines and a long end card can be equally empty. The actual call must advance the story. Templates package a performance; they do not create one.
 
 ## Design the opening before generating
 
@@ -70,7 +90,7 @@ Keep a human-readable production note next to the internal manifests. For each s
 | Sound / text               | Dialogue, sound cue or ambience; captions/context/CTA only where useful.            |
 | Asset / edit               | Reference and resulting job/asset IDs; actual chosen in/out times after inspection. |
 
-Use identity references to preserve the subject, then create shot-specific keyframes when scale or angle changes. Reusing one first frame for every shot tends to repeat its composition. Generate only the coverage justified by the story and budget; reuse existing suitable media. Digital cropping cannot create a missing angle, perspective or performance.
+Use separate identity references to preserve subjects. In H3 reference mode, write new shot blocking and camera positions; a change of angle does not require another first-frame image. Add an empty environment reference only if needed. Create shot-specific keyframes only when using intentional frame anchors. Reusing one first frame for every shot tends to repeat its composition. Generate only the coverage justified by the story and budget; reuse existing suitable media. Digital cropping cannot create a missing angle, perspective or performance.
 
 After directing decisions, read the shared video-prompting guide and the selected models' guides and translate each shot into supported parameters and prompts. Request only the actions the model can plausibly execute in one source clip. Do not solve a complex scene by cramming many independent cuts and emotions into a short generation.
 
@@ -101,3 +121,9 @@ Check the opening alone, then the whole cut:
 - Does the payoff answer the hook and connect naturally to the requested ending or CTA?
 
 Try re-cutting existing material before regenerating. Correct only affected shots within existing authorization and budget. A failed edit is not grounds to repeat paid generation. Keep the source assets, selected edit and brief review notes so another chat can revise the same production. Do not assign fabricated engagement scores or claim that a hook is proven without audience data. When later testing is requested, change a clear variable such as the opening while reusing the body where appropriate.
+
+## Replacement and delivery decisions
+
+Judge replacements against the same identity, clothing, setting, prop state, speaker and causal function as the original plan. Do not change a referenced continuing scene to text-only mode merely because the provider rejected a source. Respect the rejection; a new fictional design requires a coherent continuity revision, not a disguised retry. A crop can improve composition, but cannot certify a changed costume, restored torn contract or omitted action. Missing required material remains a failed beat. Recut coherently, revise within authorization or deliver a clearly identified draft with the unresolved gap.
+
+Finally, review the whole edit at speed with sound. Frames and ASR do not establish understandable acting, timing or voice continuity. If those checks are unavailable, say which remain unchecked and label the result a review draft. Do not call an exact-duration export a finished social video solely because it has captions and a logo.

@@ -1,6 +1,6 @@
 # Codex 视频制作插件
 
-Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插件是把这些内容组织起来供用户安装的包。本项目插件名为 `social-video`，包含三个 skill：`setup`（配置视频工具）、`create-video`（制作社媒视频）和由创作流程自动读取的 `video-prompting`（视频模型提示词）。它使用 Codex 本身理解剧情，不再调用另一套文本模型。
+Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插件是把这些内容组织起来供用户安装的包。本项目插件名为 `social-video`，包含四个 skill：`setup`（配置）、`create-video`（剧情转社媒视频）、`video-prompting`（提示词）和 `call-video`（共享剪辑组件）。它使用 Codex 本身理解剧情，不再调用另一套文本模型。
 
 ## 实习生使用
 
@@ -12,7 +12,7 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 以后发送：
 
-> 使用 Social Video 制作一支 10 秒的竖屏咖啡广告。清晨，蓝色陶瓷杯冒着热气，最后一只手端起杯子。用 Seedance 2.0、720p，请完成参考图、镜头生成和合成。
+> 使用 Social Video 制作一支 10 秒的竖屏咖啡广告。清晨，蓝色陶瓷杯冒着热气，最后一只手端起杯子。用默认 H3 参考模式、768p，请完成参考图、镜头生成和合成。
 
 也可以在 Codex 的技能选择器里选“配置视频工具”或“制作社媒视频”。插件内技能可能带有 `social-video:` 命名空间，以选择器显示的名字为准。新安装后使用新聊天，以便载入插件。
 
@@ -20,9 +20,9 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 正常使用不需要 MCP 配置、不需要手动启动服务、不需要写或导入 JSON，也不需要打开网页。网页仍可用于预览。生成任务需要本机保持运行，退出浏览器不影响后台服务；电脑关机后，已提交任务可在下次启动时继续查询。
 
-## 0.3.0：Prelulu 剧本优先流程
+## 0.5.0：保留原剧本、默认 H3
 
-默认载入随包分发的 Prelulu 背景，不依赖维护者电脑上的其他仓库。一般社媒需求会按 Prelulu 官号创作；用户指定其他品牌时覆盖默认值。北美内容使用自然英语，按需要选择剧情短片、角色通话或产品广告形式。
+默认载入随包分发的 Prelulu 背景，不依赖维护者电脑上的其他仓库。一般社媒需求会按 Prelulu 官号创作；用户指定其他品牌时覆盖默认值。北美内容使用自然英语，默认将原剧情转成分镜与视频，保留对白；仅用户明确要求视频通话时考虑通话形式。
 
 制作时自动串联三个阶段：完整的定时剧本 → 有作用的镜头覆盖与生成次数 → 按模型和参考模式编写的视频提示词。新增 `video-prompting` skill 会由创作 skill 读取，实习生不需要多点一次。不会把“20 秒”简单除以模型时长后再填剧情。
 
@@ -38,11 +38,39 @@ Skill 是给 Codex 的任务说明，可以附带指南、脚本和示例。插�
 
 已有实习生安装的插件不会因 GitHub 更新而自动变成新版。将新版完整插件包交给其 Codex，可以发送：
 
-> 请更新我已安装的 Social Video 插件，优先使用附带的完整安装包；否则获取仓库 https://github.com/Raeming10/seedance2.0 的最新 main，按 docs/CODEX_PLUGIN.md 构建并通过 plugin-creator 的更新流程重装。保留我的两个 API Key、素材和创作记录。运行配置技能切换到新运行时，等待现有任务结束后再重启服务，检查 prelulu、directing、video-prompting 和所选模型指南，并预检 examples/prelulu-mafia-20s.json 的 productionReview。不进行付费生成，最后提醒我新建聊天使用新版。
+> 请将已安装的 Social Video 更新到 0.5.0+codex.20261012181218。从 https://github.com/Raeming10/seedance2.0 获取本版源码，读取 docs/CODEX_PLUGIN.md，构建完整插件包并重新安装到我现有的插件市场。保留本机 API Key、素材、任务和配置，不复制开发者的本地路径。检查实际安装版本，运行 Studio setup 和 callkit setup，等已有任务结束后再重启服务；验证默认 H3、Veo 3.1、原版 CTA、music=false 和参考工作流预检。不调用付费生成，最后提醒我新建任务。
 
 更新后可直接说：
 
 > 使用 Social Video 实现这段剧情：[剧情]。请用画面表现动作和情绪，设计前三秒的视觉吸引点，根据叙事安排景别、运镜和声音衔接；生成后挑选有效片段并审片交付。预算：[预算]，时长：[时长]。
+
+## 跨电脑依赖与本版更新步骤
+
+本版版本为 `0.5.0+codex.20261012181218`。快节奏通过镜头压缩完整讲清原故事；目标时长明显偏长时按自然长度编写提示词并告知，不自行扩写或增加确认步骤。默认 H3 参考模式，保留 Veo 3.1 和 Flare。所有格式默认 `music: false`，不叠加组件背景音乐。
+
+**完整构建包不依赖维护者电脑上的路径。** 打包清单包含运行代码、指南、Remotion 组件、Nunito 字体及许可、app 图标、角色图片、通话小窗、演示视频和原版 CTA。CTA 位于包内 `callkit/assets/endcard-continue.mp4`，约 3.118 秒，无需访问原素材库。旧音乐素材仍打包，但不默认使用。
+
+| 依赖                               | 其他电脑如何获得                                           |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Node.js 22+ / npm                  | 在该电脑安装，不复制开发者的 node_modules                  |
+| FFmpeg / ffprobe                   | 在该电脑安装并加入 PATH                                    |
+| Studio npm 依赖                    | `scripts/studio.js setup` 按 lockfile 安装                 |
+| Remotion / React / Headless Chrome | `scripts/callkit.js setup` 首次联网下载到该电脑的持久目录  |
+| FAL_KEY                            | 本机配置，用于 H3 与 Flare                                 |
+| GOOGLE_GENERATIVE_AI_API_KEY       | 本机配置，调用 Veo 时需要                                  |
+| H3 官方指南                        | 创作时联网读取完整官方指南，链接随包提供                   |
+| 历史素材 / 自定义剪辑配置          | 不随插件同步；继续旧项目时单独迁移，并重映射其中的绝对路径 |
+
+不要复制维护者的持久 config.json、.env 或历史任务数据库。安装会创建接收电脑自己的路径。自定义 FFMPEG_PATH、STUDIO_URL 等也应对应自己的环境。macOS 已验证组件渲染；跨目录安装有自动测试，Windows 尚未做实机验证。
+
+已安装用户的 Codex 按以下顺序更新：
+
+1. 检查现有市场名称、插件源目录和持久配置，不输出密钥。从 GitHub 获取本版；要固定版本，使用维护者给出的 commit。已有目录有修改时保留修改，使用单独下载目录。
+2. 在源码根目录执行 `node scripts/build-plugin.js /绝对路径/新的空目录/social-video`。确认成功，且产物包含 bundle.json、runtime/、callkit/package-lock.json 和 CTA。不要安装失败的半成品。
+3. 备份现有插件源，把完整产物放到现有市场条目指向的目录，执行 `codex plugin add social-video@实际市场名称` 重装。不要假设对方市场叫 personal。plugin-creator 在该环境可用时可采用其更新流程；它不是插件运行依赖。版本已变化时不需另改缓存后缀。
+4. 用新安装路径运行 `node scripts/studio.js setup`。受管理安装会切换到新 bundle；若绑定源码项目，则需更新绑定的项目，setup 不会自动解除该绑定。保留密钥和任务，不中断活动生成。
+5. 空闲后运行 `node scripts/studio.js restart`，再运行 `node scripts/callkit.js setup`。检查 doctor、models 和 preview-workflow，确认默认 H3、无 Seedance、CTA 打包、额外音乐关闭。配置和预检不付费。
+6. 新建 Codex 任务加载新版技能。GitHub push 不会自动刷新别人电脑里的已安装缓存。
 
 ## 安装包与本地安装
 
@@ -95,7 +123,7 @@ node LAUNCHER models
 node LAUNCHER guide prelulu
 node LAUNCHER guide directing
 node LAUNCHER guide video-prompting
-node LAUNCHER guide seedance
+node LAUNCHER guide minimax
 node LAUNCHER preview-workflow /absolute/story.json
 node LAUNCHER workflow /absolute/story.json --key production-v1
 node LAUNCHER workflow-status WORKFLOW_ID
@@ -115,4 +143,4 @@ node LAUNCHER compose /absolute/cut.json --key edit-v1
 - [Codex skill 说明与调用方式](https://learn.chatgpt.com/docs/build-skills)
 - [官方插件打包指南](https://developers.openai.com/plugins/build/plugins)
 
-当前包提供三个可主动调用的 skill，并提供首次配置提示；没有假设安装完成就已填好密钥或获得额外系统权限。
+当前包提供四个 skill，并提供首次配置提示；没有假设安装完成就已填好密钥或获得额外系统权限。

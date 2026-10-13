@@ -1,7 +1,7 @@
 {
   "name": "social-video",
-  "version": "0.3.0",
-  "description": "面向 Prelulu 社媒运营：先写完整剧本，再编译模型提示词、生成镜头并剪辑审片。",
+  "version": "0.5.0+codex.20261012181218",
+  "description": "将用户剧情与原对白转成社媒视频：分镜、运镜、人物动作、H3 参考提示词和剪辑；复用 Prelulu 组件。",
   "author": {
     "name": "Raeming10"
   },
@@ -9,15 +9,16 @@
   "repository": "https://github.com/Raeming10/seedance2.0",
   "interface": {
     "displayName": "Social Video · 社媒视频制作",
-    "shortDescription": "Prelulu 品牌背景、完整剧本、模型提示词与可检查的制作流程。",
-    "longDescription": "包含首次配置、视频创作和视频提示词三个 skill。默认载入 Prelulu 的受众与品牌信息，先按目标时长构思完整剧情，再安排镜头和模型调用；根据官方指南区分人物参考、首帧、首尾帧和多模态参考。支持 fal Flare Medium、Seedance 2.0、MiniMax H3 与 Google 官方 Veo 3.1。预检剧本时长、素材覆盖和费用，生成后抽帧、剪辑并核对实际表演。无需手动导入 JSON；API Key 保存在本地，生成按供应商价格计费。",
+    "shortDescription": "保留原对白，将剧情转成社媒分镜与视频；默认 H3，保留 Veo 3.1。",
+    "longDescription": "从用户剧情文本出发，保留原对白与情节，先评估自然时长，再安排分镜、机位、运镜、动作和声音。快节奏通过镜头压缩完整清楚地讲完故事；要求时长明显偏长时，自主按自然时长编写提示词并告知用户，不自行扩写。只保留生成视频的声音，不叠加组件背景音乐。默认 MiniMax H3 参考模式，保留 Google Veo 3.1 和 Flare Medium 参考图。复用已有字幕、POV title、角色名称与 AI 标识组件，不加 Prelulu 水印；仅在用户明确要求视频通话时考虑通话形式。支持本地剪辑、素材库片尾、费用预检与审片，无需手动导入 JSON。",
     "developerName": "Raeming10",
     "category": "Productivity",
     "capabilities": [],
     "defaultPrompt": [
-      "帮我配置 Social Video 视频制作工具。",
-      "为 Prelulu 制作一支面向北美受众的 20 秒竖屏恋爱短剧，先根据剧情规划镜头。",
-      "使用 Social Video 修改已有视频的一个镜头，保留其他素材。"
+      "把这段剧情做成社媒视频，保留原对白，先告诉我适合的时长，再设计分镜、运镜和人物动作。",
+      "按 H3 官方 reference-to-video 指南优化这段分镜提示词，区分人物、场景、构图和声音参考。",
+      "用已有素材和原有字幕、POV title、角色头部组件剪一条社媒视频，不重新生成。",
+      "制作一条明确发生在视频通话中的短片，保留我给出的对白。"
     ]
   }
 }

@@ -138,3 +138,32 @@ test('older and asset-only workflows preserve their shape without a production r
   assert.equal('production' in plan, false);
   assert.equal(reviewProduction(plan), undefined);
 });
+
+test('source adaptations lock all lines and speakers, with an explicit approval escape hatch', () => {
+  const source = require('../examples/prelulu-source-dialogue.json');
+  const plan = validateWorkflow(structuredClone(source));
+  assert.equal(reviewProduction(plan).plannedDuration, 14);
+  for (const change of [
+    (p) => {
+      p.production.beats[1].dialogue[0].text = 'My daughter.';
+    },
+    (p) => {
+      p.production.beats[1].dialogue[0].speaker = 'Vicenzo';
+    },
+    (p) => {
+      p.production.beats[1].dialogue = [];
+    },
+    (p) => {
+      p.production.beats[2].dialogue.push({ speaker: 'Vicenzo', text: 'Stay.' });
+    },
+    (p) => {
+      p.production.sourceDialogue = [];
+    },
+  ]) {
+    const p = structuredClone(source);
+    change(p);
+    assert.throws(() => validateWorkflow(p), /Source dialogue is locked/);
+    p.production.dialogueChangesApproved = true;
+    assert.doesNotThrow(() => validateWorkflow(p));
+  }
+});

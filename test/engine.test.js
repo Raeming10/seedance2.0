@@ -46,7 +46,7 @@ function setup(t, overrides = {}) {
 }
 test('idempotency survives restart and rejects changed payloads', async (t) => {
   const x = setup(t),
-    r = { model: 'seedance', prompt: 'Cup' };
+    r = { model: 'minimax', images: ['https://v3.fal.media/hero.png'], prompt: 'Cup' };
   const one = x.engine.submit(r, 'same');
   const two = x.engine.submit(r, 'same');
   assert.equal(one.id, two.id);
@@ -67,7 +67,10 @@ test('ambiguous submission never auto retries', async (t) => {
       throw new Error('Connection lost after send');
     },
   });
-  const j = x.engine.submit({ model: 'seedance', prompt: 'Cup' }, 'uncertain');
+  const j = x.engine.submit(
+    { model: 'minimax', images: ['https://v3.fal.media/hero.png'], prompt: 'Cup' },
+    'uncertain',
+  );
   await x.engine.tick();
   await x.engine.tick();
   assert.equal(x.engine.jobs.get(j.id).status, 'unknown');
@@ -75,7 +78,10 @@ test('ambiguous submission never auto retries', async (t) => {
 });
 test('restart during submit becomes unknown, while queued jobs resume polling', async (t) => {
   const x = setup(t),
-    j = x.engine.submit({ model: 'seedance', prompt: 'Cup' }, 'restart');
+    j = x.engine.submit(
+      { model: 'minimax', images: ['https://v3.fal.media/hero.png'], prompt: 'Cup' },
+      'restart',
+    );
   x.engine.jobs.get(j.id).status = 'submitting';
   x.engine.save(x.engine.jobs.get(j.id));
   const restarted = new Engine(x.root, x.providers, x.media, { ffmpeg: true });
@@ -96,7 +102,10 @@ test('temporary polling and download failures resume without another generation'
     if (++saves === 1) throw new Error('download interruption');
     return [{ url: '/outputs/final.mp4' }];
   };
-  const j = x.engine.submit({ model: 'seedance', prompt: 'Cup' }, 'poll');
+  const j = x.engine.submit(
+    { model: 'minimax', images: ['https://v3.fal.media/hero.png'], prompt: 'Cup' },
+    'poll',
+  );
   await x.engine.tick();
   await x.engine.tick();
   await x.engine.tick();
@@ -111,7 +120,7 @@ test('workflow passes image output into the video and composes only after comple
       name: 'Story',
       steps: [
         { id: 'hero', request: { model: 'flare', prompt: 'Cup' } },
-        { id: 'shot', request: { model: 'seedance', prompt: 'Steam', firstFrame: '@step:hero' } },
+        { id: 'shot', request: { model: 'minimax', prompt: 'Steam', firstFrame: '@step:hero' } },
       ],
       compose: { steps: ['shot'] },
     },
@@ -134,7 +143,7 @@ test('failed upstream step prevents later billable steps', async (t) => {
       name: 'Failing',
       steps: [
         { id: 'hero', request: { model: 'flare', prompt: 'Cup' } },
-        { id: 'shot', request: { model: 'seedance', prompt: 'Steam', firstFrame: '@step:hero' } },
+        { id: 'shot', request: { model: 'minimax', prompt: 'Steam', firstFrame: '@step:hero' } },
       ],
     },
     'fail',
@@ -183,7 +192,15 @@ test('workflow resolves trimmed and repeated shots and independent audio to actu
     {
       name: 'Coverage',
       steps: [
-        { id: 'shot', request: { model: 'seedance', prompt: 'A visible action', duration: 5 } },
+        {
+          id: 'shot',
+          request: {
+            model: 'minimax',
+            images: ['https://v3.fal.media/hero.png'],
+            prompt: 'A visible action',
+            duration: 5,
+          },
+        },
       ],
       compose: {
         steps: [

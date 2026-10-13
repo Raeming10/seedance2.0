@@ -6,7 +6,7 @@ const image = 'https://v3.fal.media/hero.png';
 test('only requested active models are discoverable', () => {
   assert.deepEqual(
     MODELS.map((m) => m.id),
-    ['flare', 'seedance', 'minimax', 'veo'],
+    ['flare', 'minimax', 'veo'],
   );
   assert.ok(
     MODELS.filter((m) => m.provider === 'fal' && m.kind === 'video').every((m) =>
@@ -30,44 +30,17 @@ test('Flare uses medium and valid 2K dimensions for preset and custom ratios', (
   assert.deepEqual(p.input.image_size, { width: 1152, height: 2048 });
   assert.deepEqual(p.input.image_urls, [image]);
 });
-test('Seedance maps all modes and never silently drops references', () => {
-  let p = falRequest(normalize({ model: 'seedance', prompt: 'Pan', duration: 6 }));
-  assert.equal(p.endpoint, 'bytedance/seedance-2.0/text-to-video');
-  assert.equal(p.input.duration, '6');
-  p = falRequest(
-    normalize({
-      model: 'seedance',
-      prompt: 'Pan',
-      firstFrame: image,
-      lastFrame: image,
-      resolution: '1080p',
-      audio: false,
-    }),
-  );
-  assert.equal(p.input.end_image_url, image);
-  assert.equal(p.input.generate_audio, false);
-  p = falRequest(
-    normalize({
-      model: 'seedance',
-      prompt: '@Image1',
-      images: [image],
-      audios: ['https://v3.fal.media/a.wav'],
-    }),
-  );
-  assert.deepEqual(p.input.image_urls, [image]);
-  assert.equal(p.endpoint, 'bytedance/seedance-2.0/reference-to-video');
+test('H3 is the default, Seedance is removed, and reference/frame modes stay exclusive', () => {
+  assert.equal(normalize({ prompt: 'Image1 turns', images: [image] }).model, 'minimax');
+  assert.throws(() => normalize({ model: 'seedance', prompt: 'x' }), /model/);
   assert.throws(
-    () => normalize({ model: 'seedance', prompt: 'x', mode: 'text', images: [image] }),
+    () => normalize({ model: 'minimax', prompt: 'x', images: [image], firstFrame: image }),
     /combined/,
   );
-  assert.throws(
-    () => normalize({ model: 'seedance', prompt: 'x', audios: [image] }),
-    /require an image/,
+  const p = falRequest(
+    normalize({ model: 'minimax', prompt: 'Pan', firstFrame: image, lastFrame: image }),
   );
-  assert.throws(
-    () => normalize({ model: 'seedance', prompt: 'x', resolution: '4k' }),
-    /resolution/,
-  );
+  assert.equal(p.input.end_image_url, image);
 });
 test('MiniMax references use its actual schema and native resolution', () => {
   const p = falRequest(
@@ -122,7 +95,7 @@ test('workflow validates all steps before charging and rejects cycles, wrong typ
     name: 'Story',
     steps: [
       { id: 'hero', request: { model: 'flare', prompt: 'Cup' } },
-      { id: 'shot', request: { model: 'seedance', prompt: 'Steam', firstFrame: '@step:hero' } },
+      { id: 'shot', request: { model: 'minimax', prompt: 'Steam', firstFrame: '@step:hero' } },
     ],
     compose: { steps: ['shot'] },
   };
@@ -131,7 +104,7 @@ test('workflow validates all steps before charging and rejects cycles, wrong typ
   bad.steps[0].request.images = ['@step:shot'];
   assert.throws(() => validateWorkflow(bad), /earlier/);
   const badType = structuredClone(base);
-  badType.steps[1].request = { model: 'seedance', prompt: 'x', videos: ['@step:hero'] };
+  badType.steps[1].request = { model: 'minimax', prompt: 'x', videos: ['@step:hero'] };
   assert.throws(() => validateWorkflow(badType), /wrong media type/);
   const duplicate = structuredClone(base);
   duplicate.steps[1].id = 'hero';

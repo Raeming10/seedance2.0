@@ -1,6 +1,6 @@
 # Original worked example: “Your Move”
 
-Brief: a roughly 20-second mafia microdrama, North American adults, Prelulu social account, Google Veo 3.1. This is an original planning example, not a generated, approved or performance-tested advertisement. It illustrates the pipeline, not a plot to reuse for every request.
+Brief: a roughly 20-second mafia microdrama, North American adults, Prelulu social account, Google Veo 3.1. This is an original planning example, not a generated, approved or performance-tested advertisement. It illustrates schema wiring only, not the default Prelulu format or a plot/timing template to reuse. For supplied story text, preserve the original dialogue and first estimate its natural duration. Consider a call only when explicitly requested. This example does not certify that its long gaze and ring beats earn twenty seconds; it must pass a fresh shorter-cut rehearsal before any paid use.
 
 ## Script before sources
 

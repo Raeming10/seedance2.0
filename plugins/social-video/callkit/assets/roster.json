@@ -1,0 +1,12 @@
+[
+  { "id": "marcus", "name": "Marcus", "age": 38, "group": "ink" },
+  { "id": "dante", "name": "Dante", "age": 34, "group": "ink" },
+  { "id": "andre", "name": "Andre", "age": 46, "group": "ink" },
+  { "id": "rafael", "name": "Rafael", "age": 32, "group": "ink" },
+  { "id": "kai", "name": "Kai", "age": 36, "group": "ink" },
+  { "id": "james", "name": "James", "age": 42, "group": "suit" },
+  { "id": "alexander", "name": "Alexander", "age": 35, "group": "suit" },
+  { "id": "henry", "name": "Henry", "age": 48, "group": "suit" },
+  { "id": "nathan", "name": "Nathan", "age": 33, "group": "suit" },
+  { "id": "sebastian", "name": "Sebastian", "age": 39, "group": "suit" }
+]

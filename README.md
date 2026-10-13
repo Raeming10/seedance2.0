@@ -18,7 +18,7 @@
 
 可以直接说：
 
-> 请用这个项目制作一支 10 秒、9:16 的咖啡杯社媒短片：清晨，一只蓝色陶瓷杯冒着热气，最后一只手端起杯子。用 Seedance 2.0、720p。请读取 AGENTS.md，检查环境并启动服务，按模型指南制作参考图和两个镜头，完成生成与合成，把成片给我。
+> 请用这个项目制作一支 10 秒、9:16 的咖啡杯社媒短片：清晨，一只蓝色陶瓷杯冒着热气，最后一只手端起杯子。用默认 H3 参考模式、768p。请读取 AGENTS.md，检查环境并启动服务，按模型指南制作参考图和两个镜头，完成生成与合成，把成片给我。
 
 这条指令会执行付费生成。只想讨论创意时，可以说“先只给我分镜和费用估算”。后续也可以直接说“第二个镜头改为缓慢推进，其他镜头沿用”。
 
@@ -40,7 +40,7 @@ npm start
 - macOS 安装 FFmpeg：`brew install ffmpeg`
 - Ubuntu / Debian：`sudo apt-get install ffmpeg`
 - Windows：安装 FFmpeg 并把其 `bin` 目录加入 PATH，或者设置 `FFMPEG_PATH`、`FFPROBE_PATH`。
-- 只有 fal Key 时即可使用 Flare、Seedance、MiniMax。Google 是独立的官方 Gemini API。
+- 只有 fal Key 时即可使用 Flare、MiniMax H3。Google 是独立的官方 Gemini API。
 - 所有密钥只在服务端读取，网页不会获取密钥；不要提交 `.env`。
 
 ## Prelulu 剧本优先制作
@@ -58,7 +58,7 @@ node cli.js models
 node cli.js guide prelulu
 node cli.js guide directing
 node cli.js guide video-prompting
-node cli.js guide seedance
+node cli.js guide minimax
 node cli.js preview-workflow examples/social-video.json
 # 下一条会实际生成，并产生供应商费用
 node cli.js workflow examples/social-video.json --key coffee-v1 --wait
@@ -109,13 +109,12 @@ Codex 在本地项目中使用 CLI 即可。若要通过 MCP 工具调用，先�
 | 模型                | 接入                   | 本项目支持                              | 分辨率                              |
 | ------------------- | ---------------------- | --------------------------------------- | ----------------------------------- |
 | GPT Image 2.5 Flare | fal                    | 文生图、参考图编辑，固定 medium         | 长边约 2048px；多种比例及自定义比例 |
-| Seedance 2.0        | fal                    | 文生视频、首帧、首尾帧、多模态参考      | 720p / 1080p                        |
 | MiniMax H3          | fal                    | 首帧、首尾帧、图片/视频/音频参考        | 原生 768P                           |
 | Veo 3.1             | Google Gemini 官方 API | 文生视频、首帧、首尾帧、最多 3 张参考图 | 默认原生 1080p，也可选 720p         |
 
 Veo 固定模型 ID：`veo-3.1-generate-preview`。Google 没有原生 2K 参数，因此本项目默认直接生成 1080p，仅开放 720p / 1080p。参考图、1080p 都要求 8 秒，标准版约 $3.20 / 8 秒。带声音的原生输出无需 FFmpeg，合成与静音仍需要。
 
-Seedance 2.5 没有替换 2.0：同档 720p 更贵。最新 fal schema 已支持 1080p；本项目保留 2.0 的主要依据是短社媒内容的迭代成本。详细比较及来源见 [模型核对记录](docs/MODELS.md)。MiniMax 768P 的费用更低，可用于预算敏感的试稿；这里没有声称不同模型生成质量等同。
+默认视频模型为 MiniMax H3；保留 Veo 3.1，移除 Seedance 视频模型。Flare Medium 负责参考图。选型与提示词规则见 [模型说明](docs/MODELS.md)。
 
 ## 实习生协作：两种方式
 
@@ -143,7 +142,7 @@ docker compose up --build -d
 - `unknown`：提交时网络中断，不能确认供应商是否已受理。先查供应商控制台，不能盲目重发。
 - `paused`：重复查询或下载失败；使用 `resume_job` 或 `node cli.js resume ID` 恢复，不重新生成。
 - `failed`：错误记录保留；工作流会停止后续步骤，避免继续消耗额度。修正后只重新生成受影响的素材。
-- 费用是估算，不是账单承诺。Flare 按实际输入输出使用量计费，未填写虚构固定价格。包含参考视频的 Seedance 也会显示价格未确定。
+- 费用是估算，不是账单承诺。Flare 按实际输入输出使用量计费，未填写虚构固定价格。预检会单独列出未定价步骤。
 - 只运行一个服务进程管理同一份数据目录；不要在同一卷启动多个副本。
 
 原有 `.outputs/`、`.uploads/` 和浏览器旧历史没有删除。新版本使用新的持久任务目录，旧网页的 localStorage 历史不自动迁移。旧模型代理、一次性补丁脚本及前端密钥配置不再使用。

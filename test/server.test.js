@@ -55,7 +55,11 @@ test('HTTP serves the app but never exposes secrets or server source', async (t)
 });
 test('validates before paid calls, requires idempotency and reuses the same job', async (t) => {
   const s = await setup(t),
-    body = JSON.stringify({ model: 'seedance', prompt: 'A cup' });
+    body = JSON.stringify({
+      model: 'minimax',
+      images: ['https://v3.fal.media/hero.png'],
+      prompt: 'A cup',
+    });
   const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body };
   assert.equal((await s.fetch('/api/jobs', options)).status, 400);
   options.headers['Idempotency-Key'] = 'job-1';
@@ -72,7 +76,7 @@ test('validates before paid calls, requires idempotency and reuses the same job'
     400,
   );
   const list = await (await s.fetch('/api/jobs')).json();
-  assert.equal(list.jobs[0].model, 'seedance');
+  assert.equal(list.jobs[0].model, 'minimax');
   assert.equal(list.jobs[0].request, undefined);
 });
 test('asset upload is local and supports byte-range playback', async (t) => {

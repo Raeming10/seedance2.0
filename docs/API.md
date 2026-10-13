@@ -6,7 +6,7 @@ Base: `http://127.0.0.1:8000`. Shared servers require `Authorization: Bearer <ST
 
 - `GET /api/health`: configured providers, FFmpeg availability. These booleans report configuration, not provider authentication or network success.
 - `GET /api/models`: model IDs, modes, ratios, resolutions, duration and reference limits.
-- `GET /api/guides/{flare|seedance|minimax|veo}`: guide Markdown and source links.
+- `GET /api/guides/{flare|minimax|veo}`: guide Markdown and source links.
 - `GET /api/guides/directing`: visual storytelling, hooks, motivated coverage and review guidance. Read before planning shots; model guides translate those choices into provider-specific prompts.
 - `GET /api/guides/prelulu`: portable default brand, audience, formats and claim boundaries.
 - `GET /api/guides/video-prompting`: script-to-source compilation, reference intent and prompt auditing.
@@ -18,11 +18,11 @@ Base: `http://127.0.0.1:8000`. Shared servers require `Authorization: Bearer <ST
 
 ```json
 {
-  "model": "seedance",
+  "model": "minimax",
   "mode": "reference",
   "prompt": "@Image1 defines the cup. Steam rises; the camera moves slowly forward.",
   "aspectRatio": "9:16",
-  "resolution": "720p",
+  "resolution": "768p",
   "duration": 5,
   "images": ["/assets/UPLOADED-ID.png"],
   "videos": [],
@@ -119,3 +119,9 @@ It also requires `Idempotency-Key`, returns 202 and a workflow ID, and is querie
 Open the returned frames to review composition and continuity, and use playback/listening for motion and sound. Extraction is not a visual judgment or an engagement score. Sources remain untouched; preview frames are additional local files. For a local plugin, frame basenames are in its reported `outputsDir`; shared servers use the authenticated media URLs.
 
 This server is a single-process local/trusted-team service. It has no per-user authorization or budget enforcement. Provider files are copied locally so expiring CDN links are not the only copy of a result.
+
+### Supplied dialogue and duration
+
+For source adaptations, `production.sourceDialogue` locks exact ordered `{speaker,text}` entries against the timed beats. Use `[]` for a silent source. A changed, omitted, added or reassigned line fails preflight unless `dialogueChangesApproved: true` records explicit user authorization (describe the approved scope in the production note). The checker cannot infer user consent or prove fidelity of provider prompt prose/output. Agents must audit those too. Legacy manifests may omit the lock.
+
+`examples/prelulu-source-dialogue.json` is the default H3 reference planning example: 15 seconds generated, 14 seconds retained, original father dialogue unchanged. A selected 3.1-second end card makes about 17.1 seconds total. For a 20-second request, compile this naturally paced complete story and tell the user its estimated duration, without asking solely about the excess requested length. Inspect the two identity images before submitting the video stage. Do not execute this example blindly.

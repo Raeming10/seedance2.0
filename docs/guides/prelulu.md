@@ -1,39 +1,25 @@
-# Prelulu creative brief
+# Prelulu social-story brief
 
-Bundled brand context, reviewed 2026-10-12. Read by default for this plugin's social productions. An explicit user brief for another brand overrides it. Do not ask which platform the user means when they say “our AI companion platform”: this installation is for Prelulu. Discuss work in the user's language; default North American audience copy and dialogue to natural English when that audience is requested.
+Reviewed 2026-10-12. The job is to turn the user's story text into a compelling social video. Default audience: adult romance readers, including North American BookTok, otome and character-roleplay viewers. Discuss in the user's language. Preserve supplied dialogue in its original language; a North American audience alone does not authorize rewriting or translating it.
 
-## What we are making people feel
+The emotional promise is an interesting character and a relationship the viewer wants to continue through conversation. Preserve the user's characters, motives, relationships and plot. All romantic participants are adults. Express the source's emotions with performance, blocking, viewpoint, camera and sound; do not add a different story to sell the product.
 
-Prelulu is a character-led AI romance and companionship experience: discover a character, build a relationship through conversation, and experience their presence through voice and video. The creative promise is a romance the viewer participates in and can return to. Sell the feeling of being specifically seen, chosen and answered by an interesting character. Do not reduce the brand to “a handsome person says a comforting line” or a catalogue of AI features.
+## Source fidelity and duration
 
-The core audience is adult romance readers, particularly women 18–35 across orientations, with overlap in BookTok, otome, romantasy and character roleplay. Female-first does not mean every viewer is straight or every romantic lead is male. Respect the requested character, pronouns and relationship. Cast romantic participants as adults.
+Extract dialogue verbatim, with the original speaker and order. Separate narration, on-screen copy and tagline. Lock the dialogue in `production.sourceDialogue`. Treat requests for faster pacing, a viral hook or 20 seconds as directing constraints, not rewriting permission. No invented replies, greetings, threats, choice cards or changed ending by default. Ask before expanding, paraphrasing, translating or deleting source dialogue.
 
-Brand tone: cinematic, intimate, confident, emotionally specific; sensuality comes from attention, voice, choices and charged distance. A character has an agenda and a distinctive response, not interchangeable generic reassurance. Dark romance may be fictional and intense while preserving the viewer's meaningful choices. Do not turn every genre into a rain-soaked office, coercive threat or generic “Who hurt you?” monologue.
+Estimate the original material's natural duration plus the actual selected end card. If the requested runtime is clearly longer, compile the complete shorter story with your own directing judgment and tell the user the estimated duration; do not require confirmation solely for that mismatch. Do not fill missing time with new plot or long reactions. Fast pacing means compressing screen time through efficient shot construction and editing while telling the entire supplied story clearly: overlap dialogue with relevant action, remove redundant coverage and retain causal links, key reactions and every supplied line. It does not mean arbitrary rapid cuts or omitting story information.
 
-## Choose a format for the brief
+## Presentation
 
-| Format                      | What must work                                                                                                                       | Product connection                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Narrative microdrama        | Desire encounters an obstacle; a choice creates a reversal and consequence. A scene unfolds rather than three flattering statements. | Let the final beat invite the viewer into the next choice, with restrained Prelulu attribution.       |
-| Character call / confession | The character reacts to a specific shared situation; direct gaze and an intimate performance can carry one continuous shot.          | A call presentation may frame the experience. Use verified UI assets if showing the actual interface. |
-| Product-led social ad       | Show an understandable interaction and the character's relevant response.                                                            | Demonstrate a supported experience, then make one clear invitation.                                   |
-| Trope / POV teaser          | One instantly legible romantic contradiction and a payoff tied to it.                                                                | Invite the viewer to explore that kind of character or story.                                         |
+Do not consider a video call unless the user explicitly mentions making a video call. Voice and video calls are platform features, not a mandatory advertising format. A character talking to the viewer, a POV story, a mafia trope or reused call UI does not make the scene a call. Choose cinematic coverage and active blocking from the source story, with an early visible question and the source's own payoff or cliffhanger.
 
-Choose based on the user's request. “Mafia short drama” defaults to narrative microdrama, not a static simulated call. A phone-call template's fixed camera and hands-out-of-frame rules should not leak into cinematic storytelling.
+Reuse the bundled kit's existing visual components: word-highlight `Captions`, white `PovTitle`, character-name/app-icon/AI `TemplateHeader`. `format: story` uses these on selected cinematic footage, with no call timer, camera-window insert or call-control buttons. Only explicit call briefs use the six call presentations and their source-camera rules. Do not invent substitute caption boxes, buttons or a new visual language for each video.
 
-## Brand and claims in the finished film
+No persistent Prelulu wordmark watermark on the story footage. The existing character header is allowed; keep its AI identification. Brand attribution/CTA belongs in the library end card. The desired social ending reads `Continue this chat on` with `Prelulu` beneath it, without download badges. Use the configured approved video asset; if unavailable, report that and request the finished replacement, rather than improvise a new end card. Include the end card in the total duration, not as unexpected extra seconds.
 
-Default to a tasteful Prelulu attribution or CTA integrated into the ending of an official-account production, unless the user requests unbranded output. Reserve actual timeline space and screen space for it. Examples of original copy: “Choose your next chapter. Prelulu.” / “Meet your next story on Prelulu.” Keep the dramatic payoff visible. Add clean text/UI during editing; do not ask a video model to improvise a readable app screen or logo.
+## Claims
 
-Text, character voice and video presence are supported product context. Memories and continuity are part of the product direction, but do not promise perfect recall, unlimited availability, free access, specific prices, private-data guarantees or unreleased capabilities. Check the current campaign/product source before making such concrete claims. Do not invent reviews, user testimonials, performance statistics or product screenshots. A fictional character scene is a creative portrayal, not evidence that a user actually had that conversation.
+Text, voice and video conversations are supported product context. Do not promise perfect memory, unlimited availability, free access, prices, privacy guarantees or unreleased capabilities. Do not invent reviews, screenshots, engagement results or user testimonials. A fictional scene is creative portrayal, not proof of a real conversation. Never post to accounts without explicit authorization.
 
-## Lessons retained from the earlier ad workflow
-
-- Separate cast identity and voice direction from the dialogue and action of a particular shot.
-- Cut to the performance actually generated. Remove long empty gaps while protecting word endings, a necessary reaction and physical continuity; do not stretch every source to its native duration.
-- Derive dialogue captions from actual speech or verified timings; a planned transcript alone is not proof of lip sync or word timing. Apply the same source-to-edit time mapping to captions and sound.
-- Keep product UI, captions and end cards editable separately from footage. Use measured face/action placement, not a fixed overlay that obscures the actor.
-- Possible hook variants include call-first, character-first and context-first. Compare them only when relevant; do not pay for multiple versions without scope/budget authorization.
-- Archive the selected cut separately from exploratory renders. “Selected” or “approved” does not prove engagement or conversion. Learn from real campaign results when supplied.
-
-Maintainer provenance: distilled from the product repository's `apps/web/PRODUCT.md`, `POSITIONING_AND_GTM_2026.md` (the newer positioning takes precedence), and the earlier ad gallery's `README.md`, `lane/cast.py` and `build_ad.py`. This file contains the portable brief: it needs none of those repositories to run. Internal metrics, business plans, user conversations, credentials and historical pricing are intentionally not part of the creative brief.
+Preserve the generated footage’s native soundtrack (dialogue, ambience, effects and any generated score). Do not add the kit’s bundled background music or a replacement music bed. Set `music: false` for all formats unless the user explicitly requests additional music later. Append the supplied library CTA as-is, including its own audio.

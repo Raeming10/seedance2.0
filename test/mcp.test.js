@@ -57,7 +57,7 @@ test(
     });
     assert.match(story.messages[0].content.text, /reference_image_urls/);
     assert.match(story.messages[0].content.text, /Flare/);
-    assert.match(story.messages[0].content.text, /Prelulu creative brief/);
+    assert.match(story.messages[0].content.text, /Prelulu/);
     assert.match(story.messages[0].content.text, /Video prompting: compile a shot/);
     const film = await client.callTool({
       name: 'preview_workflow',

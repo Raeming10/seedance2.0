@@ -91,7 +91,7 @@ async function fixture(t) {
   });
   return { ...built, home, cwd, runtime, data, envFile, chosenPort, run, kill };
 }
-test('plugin bundle is self-contained and excludes keys, media, node_modules and git files', (t) => {
+test('plugin bundle is self-contained and excludes keys, generated history, node_modules and git files', (t) => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-bundle-'));
   t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
   const a = build(path.join(folder, 'a'));
@@ -121,7 +121,7 @@ test(
     assert.equal(setup.configured.google, false);
     assert.equal(setup.credentialsVerified, false);
     assert.equal(setup.projectRoot, x.runtime);
-    assert.equal((await x.run('models')).models.length, 4);
+    assert.equal((await x.run('models')).models.length, 3);
     const manifest = {
       name: 'Preview only',
       steps: [{ id: 'hero', request: { model: 'flare', prompt: 'A cup' } }],
@@ -141,7 +141,7 @@ test(
     await x.run('setup');
     assert.equal(fs.readFileSync(x.envFile, 'utf8'), before);
     await x.kill();
-    assert.equal((await x.run('models')).models.length, 4);
+    assert.equal((await x.run('models')).models.length, 3);
     assert.equal((await x.run('doctor')).serviceRunning, true);
   },
 );
